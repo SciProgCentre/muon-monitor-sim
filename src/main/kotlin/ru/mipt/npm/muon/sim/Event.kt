@@ -17,7 +17,7 @@ data class Event(val track: Track, val hits: List<Pixel>){
      * Ge unique identity for given set of hits. One identity could correspond to different tracks
      */
     fun getIdentity(): String{
-        return hits.joinToString(separator = ", ", prefix = "[", postfix = "]");
+        return hits.joinToString(separator = ", ", prefix = "[", postfix = "]",transform = {pixel->pixel.name});
     }
 
 }
