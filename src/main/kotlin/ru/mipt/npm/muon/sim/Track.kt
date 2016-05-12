@@ -48,20 +48,3 @@ fun makeTrack(x: Double, y: Double, theta: Double, phi: Double): Track {
     return makeTrack(Vector3D(x, y, CENTRAL_LAYER_Z), Vector3D(phi, theta))
 }
 
-interface TrackGenerator {
-    fun generate(rnd: RandomGenerator): Track;
-}
-
-/**
- * A uniform generator with track bases distributed in square in central plane, uniform phi and cos theta
- */
-class UniformTrackGenerator(val maxX: Double = 2 * PIXEL_XY_SIZE, val maxY: Double = 2 * PIXEL_XY_SIZE) : TrackGenerator {
-    override fun generate(rnd: RandomGenerator): Track {
-        val x = (1 - rnd.nextDouble()*2.0)*maxX;
-        val y = (1 - rnd.nextDouble()*2.0)*maxY;
-        val phi = rnd.nextDouble()*2*Math.PI;
-        val theta = Math.acos(rnd.nextDouble());
-        return makeTrack(x,y,theta,phi);
-    }
-
-}
