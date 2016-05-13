@@ -3,7 +3,14 @@ package ru.mipt.npm.muon.sim
 import org.apache.commons.math3.random.JDKRandomGenerator
 import org.apache.commons.math3.random.RandomGenerator
 import org.apache.commons.math3.util.IntegerSequence
+import java.io.File
+import java.io.PrintStream
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
+import java.util.function.Supplier
+import java.util.stream.IntStream
+import java.util.stream.Stream
+import java.util.stream.StreamSupport
 
 /**
  * Simulation controls
@@ -29,8 +36,9 @@ class Simulation {
      * Simulate n events and count them by identities
      */
     fun simulateN(n: Int): Map<String, Int> {
-        val map = HashMap<String, IntegerSequence.Incrementor>();
-        for (i in 1..n) {
+        val map = ConcurrentHashMap<String, IntegerSequence.Incrementor>();
+        //generating stream in parallel
+        Stream.generate { -> simulateOne() }.limit(n.toLong()).parallel().forEach {
             val res = simulateOne();
             val id = res.getIdentity();
             if (!map.containsKey(id)) {
@@ -50,7 +58,7 @@ interface TrackGenerator {
 /**
  * A uniform generator with track bases distributed in square in central plane, uniform phi and cos theta
  */
-class UniformTrackGenerator(val maxX: Double = 2 * PIXEL_XY_SIZE, val maxY: Double = 2 * PIXEL_XY_SIZE) : TrackGenerator {
+class UniformTrackGenerator(val maxX: Double = 4 * PIXEL_XY_SIZE, val maxY: Double = 4 * PIXEL_XY_SIZE) : TrackGenerator {
     override fun generate(rnd: RandomGenerator): Track {
         val x = (1 - rnd.nextDouble() * 2.0) * maxX;
         val y = (1 - rnd.nextDouble() * 2.0) * maxY;
@@ -63,6 +71,14 @@ class UniformTrackGenerator(val maxX: Double = 2 * PIXEL_XY_SIZE, val maxY: Doub
 
 fun main(args: Array<String>) {
     val sim = Simulation();
+    val n = args.getOrElse(0, { i -> "10000000" }).toInt();
+    val fileName = args.getOrNull(1);
 
-    sim.simulateN(1000000).forEach { entry -> println("${entry.key} : ${entry.value}") }
+    var outStream: PrintStream;
+    if (fileName != null) {
+        outStream = PrintStream(File(fileName));
+    } else {
+        outStream = System.out;
+    }
+    sim.simulateN(n).forEach { entry -> outStream.println("${entry.key} : ${entry.value}") }
 }

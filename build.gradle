@@ -38,5 +38,6 @@ task monitorFX(dependsOn: 'classes', type: JavaExec) {
 
 task simulate(dependsOn: 'classes', type: JavaExec) {
     main = 'ru.mipt.npm.muon.sim.SimulationKt'
+    args = [10000000, "hits.dat"]
     classpath = sourceSets.main.runtimeClasspath
 }
