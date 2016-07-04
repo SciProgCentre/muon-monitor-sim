@@ -32,7 +32,7 @@ fun findLayer(z: Double): Layer {
  */
 fun buildPixels(): Map<String, Pixel> {
     var map = HashMap<String, Pixel>();
-    File(ClassLoader.getSystemClassLoader().getResource("map-RMM110.sc16").toURI()).forEachLine { line ->
+    ClassLoader.getSystemClassLoader().getResourceAsStream("map-RMM110.sc16").bufferedReader().forEachLine { line ->
         if (line.startsWith(" ")) {
             var split = line.trim().split("\\s+".toPattern());
             var detectorName = split[1];
