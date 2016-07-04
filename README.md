@@ -6,4 +6,4 @@
 3. Unpack it.
 3. Run it from bin directory (bash script or batch file).
 
-***For some unknown reason it does not work with OpenJDK***
+On openJDK package `openjfx` is also required.
