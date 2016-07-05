@@ -9,7 +9,9 @@ import org.apache.commons.math3.geometry.euclidean.threed.Vector3D
  */
 class Pixel(val name: String, val center: Vector3D,
             val xSize: Double = PIXEL_XY_SIZE, val ySize: Double = PIXEL_XY_SIZE, val zSize: Double = PIXEL_Z_SIZE) {
-    var layer: Layer = findLayer(center.z);
+    val layer: Layer = findLayer(center.z);
+    private val upLayer = Layer("${name}_up", center.z + zSize / 2.0);
+    private val bottomLayer = Layer("${name}_bottom", center.z - zSize / 2.0);
 
     //TODO add efficiency
     fun containsPoint(x: Double, y: Double, z: Double): Boolean {
@@ -30,6 +32,7 @@ class Pixel(val name: String, val center: Vector3D,
      * TODO add track length analysis
      */
     fun isHit(track: Track): Boolean {
-        return containsPoint(layer.intersect(track));
+        //check central plane as well as upper and bottom planes of the layer
+        return containsPoint(layer.intersect(track))||containsPoint(upLayer.intersect(track))||containsPoint(bottomLayer.intersect(track));
     }
 }
