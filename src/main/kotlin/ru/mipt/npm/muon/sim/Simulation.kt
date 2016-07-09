@@ -2,15 +2,10 @@ package ru.mipt.npm.muon.sim
 
 import org.apache.commons.math3.random.JDKRandomGenerator
 import org.apache.commons.math3.random.RandomGenerator
-import org.apache.commons.math3.util.IntegerSequence
 import java.io.File
 import java.io.PrintStream
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import java.util.function.Supplier
-import java.util.stream.IntStream
 import java.util.stream.Stream
-import java.util.stream.StreamSupport
 
 /**
  * Simulation controls
@@ -35,18 +30,62 @@ class Simulation {
     /**
      * Simulate n events and count them by identities
      */
-    fun simulateN(n: Int): Map<String, Int> {
-        val map = ConcurrentHashMap<String, IntegerSequence.Incrementor>();
+    fun simulateN(n: Int): Map<String, Counter> {
+        val map = ConcurrentHashMap<String, Counter>();
         //generating stream in parallel
         Stream.generate { -> simulateOne() }.limit(n.toLong()).parallel().forEach {
             val res = simulateOne();
             val id = res.getIdentity();
             if (!map.containsKey(id)) {
-                map.put(id, IntegerSequence.Incrementor.create().withMaximalCount(Int.MAX_VALUE))
+                map.put(id, Counter(id, res.hits.size))
             }
-            map[id]?.increment();
+            map[id]?.putEvent(res);
         }
-        return map.mapValues { entry -> entry.value.count }
+        return map
+    }
+
+    /**
+     * A counter for events with specific set id
+     * @param id : set id
+     * @param multiplicity : number of pixels in set
+     */
+    class Counter(val id: String, val multiplicity: Int) {
+        var count: Int = 0;
+            private set
+        private var phiSum: Double = 0.0;
+        private var phi2Sum: Double = 0.0;
+        private var thetaSum: Double = 0.0;
+        private var theta2Sum: Double = 0.0;
+
+        fun getMeanPhi(): Double {
+            return phiSum / count;
+        }
+
+        fun getPhiErr(): Double {
+            return Math.sqrt(phi2Sum / count - Math.pow(getMeanPhi(), 2.0));
+        }
+
+        fun getMeanTheta(): Double {
+            return thetaSum / count;
+        }
+
+        fun getThetaErr(): Double {
+            return Math.sqrt(theta2Sum / count - Math.pow(getMeanTheta(), 2.0));
+        }
+
+        fun putEvent(event: Event) {
+            count++;
+            phiSum += event.track.getPhi();
+            phi2Sum += Math.pow(event.track.getPhi(), 2.0);
+            thetaSum += event.track.getTheta();
+            theta2Sum += Math.pow(event.track.getTheta(), 2.0);
+        }
+
+        override fun toString(): String {
+            return String.format("%s: %d; phi = %.3f\u00B1%.3f; theta = %.3f\u00B1%.3f;",
+                    id, count, getMeanPhi(), getPhiErr(), getMeanTheta(), getThetaErr())
+        }
+
     }
 
 }
@@ -71,7 +110,7 @@ class UniformTrackGenerator(val maxX: Double = 4 * PIXEL_XY_SIZE, val maxY: Doub
 
 fun main(args: Array<String>) {
     val sim = Simulation();
-    val n = args.getOrElse(0, { i -> "10000000" }).toInt();
+    val n = args.getOrElse(0, { i -> "100000" }).toInt();
     val fileName = args.getOrNull(1);
 
     var outStream: PrintStream;
@@ -80,5 +119,11 @@ fun main(args: Array<String>) {
     } else {
         outStream = System.out;
     }
-    sim.simulateN(n).forEach { entry -> outStream.println("${entry.key} : ${entry.value}") }
+
+    sim.simulateN(n).values.sortedByDescending { it.count }.forEach { entry ->
+        // print only 3-s
+        if (entry.multiplicity <= 3) {
+            outStream.println(entry)
+        }
+    }
 }
