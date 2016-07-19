@@ -24,7 +24,7 @@ class Simulation {
     }
 
     private fun eventToString(event: Event): String {
-        return event.hits.joinToString(separator = ", ", prefix = "[", postfix = "]")
+        return event.hits.sortedBy { it -> it.name }.joinToString(separator = ", ", prefix = "[", postfix = "]")
     }
 
     /**
