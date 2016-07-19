@@ -5,3 +5,5 @@
 2. Download [distribution tar](https://bitbucket.org/mipt-npm/muon-sim/downloads/muonsim-1.0-SNAPSHOT.tar).
 3. Unpack it.
 3. Run it from bin directory (bash script or batch file).
+
+On openJDK package `openjfx` is also required.
