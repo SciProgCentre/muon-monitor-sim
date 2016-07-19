@@ -48,6 +48,13 @@ task simulate(dependsOn: 'classes', type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 }
 
+task evalData(dependsOn: 'classes', type: JavaExec) {
+    main = 'ru.mipt.npm.muon.sim.ExperimentDataKt'
+    args = ["D:\\Work\\MIPT\\Projects\\muonsim-data\\Event_Counters summ RMM108-RMM132",10000000, "eval.dat"]
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+
 sourceSets {
     main.java.srcDirs += 'src/main/kotlin'
 }
