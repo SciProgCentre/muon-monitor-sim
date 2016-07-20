@@ -58,11 +58,11 @@ class Simulation {
         private var theta2Sum: Double = 0.0;
 
         fun getMeanPhi(): Double {
-            return phiSum / count;
+            return phiSum / count - 2.0 * Math.PI;
         }
 
         fun getPhiErr(): Double {
-            return Math.sqrt(phi2Sum / count - Math.pow(getMeanPhi(), 2.0));
+            return Math.sqrt(phi2Sum / count - Math.pow(phiSum / count, 2.0));
         }
 
         fun getMeanTheta(): Double {
@@ -75,8 +75,8 @@ class Simulation {
 
         fun putEvent(event: Event) {
             count++;
-            phiSum += event.track.getPhi();
-            phi2Sum += Math.pow(event.track.getPhi(), 2.0);
+            phiSum += event.track.getPhi() + 2.0 * Math.PI;
+            phi2Sum += Math.pow(event.track.getPhi() + 2.0 * Math.PI, 2.0);
             thetaSum += event.track.getTheta();
             theta2Sum += Math.pow(event.track.getTheta(), 2.0);
         }
