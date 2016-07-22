@@ -101,7 +101,7 @@ class UniformTrackGenerator(val maxX: Double = 4 * PIXEL_XY_SIZE, val maxY: Doub
     override fun generate(rnd: RandomGenerator): Track {
         val x = (1 - rnd.nextDouble() * 2.0) * maxX;
         val y = (1 - rnd.nextDouble() * 2.0) * maxY;
-        val phi = rnd.nextDouble() * 2 * Math.PI;
+        val phi = (1 - rnd.nextDouble() * 2.0) * Math.PI;
         val theta = Math.acos(rnd.nextDouble());
         return makeTrack(x, y, theta, phi);
     }
@@ -120,10 +120,19 @@ fun main(args: Array<String>) {
         outStream = System.out;
     }
 
-    sim.simulateN(n).values.sortedByDescending { it.count }.forEach { entry ->
+    outStream.printf("%s\t%s\t%s\t%s\t%s\t%s%n",
+            "name", "simCounts", "phi", "phiErr",
+            "theta", "thetaErr");
+
+    sim.simulateN(n).values.sortedByDescending { it.count }.forEach { counter ->
         // print only 3-s
-        if (entry.multiplicity <= 3) {
-            outStream.println(entry)
+//        if (entry.multiplicity <= 3) {
+//            outStream.println(entry)
+//        }
+        if(counter.multiplicity<=3) {
+            outStream.printf("%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f%n",
+                    counter.id, counter.count, counter.getMeanPhi(), counter.getPhiErr(),
+                    counter.getMeanTheta(), counter.getThetaErr());
         }
     }
 }

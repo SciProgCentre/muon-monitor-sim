@@ -2,25 +2,20 @@ package ru.mipt.npm.muon.sim;
 
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.*;
 import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.ToolBar;
-import javafx.scene.image.WritableImage;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.PhongMaterial;
+import javafx.scene.shape.Box;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javafx.scene.paint.PhongMaterial;
-import javafx.scene.shape.Box;
-import javafx.event.EventHandler;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
-import javafx.util.Callback;
 
 import javax.imageio.ImageIO;
 import java.io.File;
@@ -137,8 +132,8 @@ public class MonitorFX extends Application {
         lineBox.setMaterial(redMaterial);
         line.getChildren().add(lineBox);
         line.setRy(-track.getTheta() * 180.0 / Math.PI);
-        line.setRz(track.getPhi() * 180.0 / Math.PI);
-        line.setTranslate(track.getX(), track.getY());
+        line.setRz(-track.getPhi() * 180.0 / Math.PI);
+        line.setTranslate(-track.getX(), track.getY());
         return line;
     }
 
@@ -254,9 +249,9 @@ public class MonitorFX extends Application {
             //Slightly reducing pixel sizes to see gaps
             Box pixelBox = new Box(p.getXSize() - 0.1, p.getYSize() - 0.1, p.getZSize() - 0.1);
             pixelBox.setMaterial(whiteMaterial);
-            pixelBox.setTranslateX(p.getCenter().getX());
+            pixelBox.setTranslateX(-p.getCenter().getX());
             pixelBox.setTranslateY(p.getCenter().getY());
-            pixelBox.setTranslateZ(p.getCenter().getZ());
+            pixelBox.setTranslateZ(-p.getCenter().getZ());
 
             pixelMap.put(p.getName(), pixelBox);
 
