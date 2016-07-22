@@ -1,8 +1,6 @@
 package ru.mipt.npm.muon.sim
 
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D
-import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
-import java.io.File
 import java.util.*
 
 /**
@@ -14,7 +12,7 @@ val PIXEL_XY_SIZE = 125.0;
 val PIXEL_Z_SIZE = 30.0;
 val CENTRAL_LAYER_Z = 0.0;
 val UPPER_LAYER_Z = 166.0;
-val LOWER_LAYER_Z = -180.0;
+val LOWER_LAYER_Z =  -180.0;
 val layers = arrayOf(Layer("center", CENTRAL_LAYER_Z), Layer("up", UPPER_LAYER_Z), Layer("bottom", LOWER_LAYER_Z));
 val pixels = buildPixels()
 
