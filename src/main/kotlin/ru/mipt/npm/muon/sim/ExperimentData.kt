@@ -52,16 +52,16 @@ fun main(args: Array<String>) {
     } else {
         outStream = System.out;
     }
-    outStream.printf("%s\t%s\t%s\t%s\t%s\t%s\t%s%n",
-            "name", "dataCounts", "simCounts", "phi", "phiErr",
-            "theta", "thetaErr");
+    outStream.printf("%s\t%s\t%s\t%s\t%s\t%s%n",
+            "name", "dataCounts", "simCounts", "phi",
+            "theta", "angleErr");
     data.forEach { entry ->
         if(simResults.containsKey(entry.key)){
             val counter = simResults[entry.key]!!;
             if(counter.multiplicity<=3) {
-                outStream.printf("%s\t%d\t%d\t%.3f\t%.3f\t%.3f\t%.3f%n",
-                        entry.key, entry.value, counter.count, counter.getMeanPhi(), counter.getPhiErr(),
-                        counter.getMeanTheta(), counter.getThetaErr());
+                outStream.printf("%s\t%d\t%d\t%.3f\t%.3f\t%.3f%n",
+                        entry.key, entry.value, counter.count, counter.getMeanPhi(),
+                        counter.getMeanTheta(), counter.angleErr());
             }
         }
     }

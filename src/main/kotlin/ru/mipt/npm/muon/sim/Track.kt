@@ -3,7 +3,6 @@ package ru.mipt.npm.muon.sim
 import org.apache.commons.math3.geometry.euclidean.threed.Line
 import org.apache.commons.math3.geometry.euclidean.threed.Plane
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D
-import org.apache.commons.math3.random.RandomGenerator
 
 /**
  * Created by darksnake on 11-May-16.
@@ -25,6 +24,10 @@ class Track(val line: Line) {
      */
     fun getPhi(): Double{
         return line.direction.alpha;
+    }
+
+    fun getDirection():Vector3D{
+        return line.direction;
     }
 
     /**

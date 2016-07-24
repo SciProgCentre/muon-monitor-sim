@@ -1,5 +1,6 @@
 package ru.mipt.npm.muon.sim
 
+import org.apache.commons.math3.geometry.euclidean.threed.Vector3D
 import org.apache.commons.math3.random.JDKRandomGenerator
 import org.apache.commons.math3.random.RandomGenerator
 import java.io.File
@@ -52,39 +53,70 @@ class Simulation {
     class Counter(val id: String, val multiplicity: Int) {
         var count: Int = 0;
             private set
-        private var phiSum: Double = 0.0;
-        private var phi2Sum: Double = 0.0;
-        private var thetaSum: Double = 0.0;
-        private var theta2Sum: Double = 0.0;
+        private var sum: Vector3D = Vector3D(0.0, 0.0, 0.0);
 
-        fun getMeanPhi(): Double {
-            return phiSum / count - 2.0 * Math.PI;
+
+        /**
+         * Using center of mass for averaging
+         */
+        fun putEvent(event: Event) {
+            count++;
+            sum = sum.add(event.track.getDirection())
         }
 
-        fun getPhiErr(): Double {
-            return Math.sqrt(phi2Sum / count - Math.pow(phiSum / count, 2.0));
+        fun average(): Vector3D {
+            return sum.scalarMultiply(1.0 / count);
+        }
+
+        /**
+         * <(r-<r>)^2> = <r^2> - <r>^2 = 1 - <r>^2
+         *
+         */
+        fun angleErr(): Double {
+            return Math.sqrt(1.0 - average().normSq);
+        }
+
+        fun getMeanPhi(): Double {
+            return sum.alpha;
         }
 
         fun getMeanTheta(): Double {
-            return thetaSum / count;
+            return sum.delta;
         }
 
-        fun getThetaErr(): Double {
-            return Math.sqrt(theta2Sum / count - Math.pow(getMeanTheta(), 2.0));
-        }
-
-        fun putEvent(event: Event) {
-            count++;
-            phiSum += event.track.getPhi() + 2.0 * Math.PI;
-            phi2Sum += Math.pow(event.track.getPhi() + 2.0 * Math.PI, 2.0);
-            thetaSum += event.track.getTheta();
-            theta2Sum += Math.pow(event.track.getTheta(), 2.0);
-        }
-
-        override fun toString(): String {
-            return String.format("%s: %d; phi = %.3f\u00B1%.3f; theta = %.3f\u00B1%.3f;",
-                    id, count, getMeanPhi(), getPhiErr(), getMeanTheta(), getThetaErr())
-        }
+//        private var phiSum: Double = 0.0;
+//        private var phi2Sum: Double = 0.0;
+//        private var thetaSum: Double = 0.0;
+//        private var theta2Sum: Double = 0.0;
+//
+//        fun getMeanPhi(): Double {
+//            return phiSum / count - 2.0 * Math.PI;
+//        }
+//
+//        fun getPhiErr(): Double {
+//            return Math.sqrt(phi2Sum / count - Math.pow(phiSum / count, 2.0));
+//        }
+//
+//        fun getMeanTheta(): Double {
+//            return thetaSum / count;
+//        }
+//
+//        fun getThetaErr(): Double {
+//            return Math.sqrt(theta2Sum / count - Math.pow(getMeanTheta(), 2.0));
+//        }
+//
+//        fun putEvent(event: Event) {
+//            count++;
+//            phiSum += event.track.getPhi() + 2.0 * Math.PI;
+//            phi2Sum += Math.pow(event.track.getPhi() + 2.0 * Math.PI, 2.0);
+//            thetaSum += event.track.getTheta();
+//            theta2Sum += Math.pow(event.track.getTheta(), 2.0);
+//        }
+//
+//        override fun toString(): String {
+//            return String.format("%s: %d; phi = %.3f\u00B1%.3f; theta = %.3f\u00B1%.3f;",
+//                    id, count, getMeanPhi(), getPhiErr(), getMeanTheta(), getThetaErr())
+//        }
 
     }
 
@@ -119,20 +151,20 @@ fun main(args: Array<String>) {
     } else {
         outStream = System.out;
     }
+    println("Staring simulation with ${n} particles");
 
-    outStream.printf("%s\t%s\t%s\t%s\t%s\t%s%n",
-            "name", "simCounts", "phi", "phiErr",
-            "theta", "thetaErr");
+    outStream.printf("%s\t%s\t%s\t%s\t%s%n",
+            "name", "simCounts", "phi", "theta", "angleErr");
 
     sim.simulateN(n).values.sortedByDescending { it.count }.forEach { counter ->
         // print only 3-s
 //        if (entry.multiplicity <= 3) {
 //            outStream.println(entry)
 //        }
-        if(counter.multiplicity<=3) {
-            outStream.printf("%s\t%d\t%.3f\t%.3f\t%.3f\t%.3f%n",
-                    counter.id, counter.count, counter.getMeanPhi(), counter.getPhiErr(),
-                    counter.getMeanTheta(), counter.getThetaErr());
+        if (counter.multiplicity <= 3) {
+            outStream.printf("%s\t%d\t%.3f\t%.3f\t%.3f%n",
+                    counter.id, counter.count, counter.getMeanPhi(),
+                    counter.getMeanTheta(), counter.angleErr());
         }
     }
 }
