@@ -12,9 +12,8 @@ import java.util.stream.Stream
  * Simulation controls
  * Created by darksnake on 11-May-16.
  */
-class Simulation {
+class Simulation(val trackGenerator: TrackGenerator = UniformTrackGenerator()) {
     var rnd: RandomGenerator = JDKRandomGenerator();
-    var trackGenerator: TrackGenerator = UniformTrackGenerator();
 
     /**
      * Simulate single track and returns corresponding event
@@ -137,8 +136,18 @@ class UniformTrackGenerator(val maxX: Double = 4 * PIXEL_XY_SIZE, val maxY: Doub
         val theta = Math.acos(rnd.nextDouble());
         return makeTrack(x, y, theta, phi);
     }
-
 }
+
+class Cos2TrackGenerator(val maxX: Double = 4 * PIXEL_XY_SIZE, val maxY: Double = 4 * PIXEL_XY_SIZE) : TrackGenerator {
+    override fun generate(rnd: RandomGenerator): Track {
+        val x = (1 - rnd.nextDouble() * 2.0) * maxX;
+        val y = (1 - rnd.nextDouble() * 2.0) * maxY;
+        val phi = (1 - rnd.nextDouble() * 2.0) * Math.PI;
+        val theta = Math.acos(rnd.nextDouble());
+        return makeTrack(x, y, theta, phi);
+    }
+}
+
 
 fun main(args: Array<String>) {
     val sim = Simulation();
@@ -161,10 +170,10 @@ fun main(args: Array<String>) {
 //        if (entry.multiplicity <= 3) {
 //            outStream.println(entry)
 //        }
-        if (counter.multiplicity <= 3) {
+        if (counter.multiplicity == 3) {
             outStream.printf("%s\t%d\t%.3f\t%.3f\t%.3f%n",
                     counter.id, counter.count, counter.getMeanPhi(),
-                    counter.getMeanTheta(), counter.angleErr());
+                    Math.PI/2 - counter.getMeanTheta(), counter.angleErr());
         }
     }
 }
