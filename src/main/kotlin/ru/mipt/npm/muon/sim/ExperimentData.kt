@@ -58,10 +58,10 @@ fun main(args: Array<String>) {
     data.forEach { entry ->
         if(simResults.containsKey(entry.key)){
             val counter = simResults[entry.key]!!;
-            if(counter.multiplicity<=3) {
+            if(counter.multiplicity==3) {
                 outStream.printf("%s\t%d\t%d\t%.3f\t%.3f\t%.3f%n",
                         entry.key, entry.value, counter.count, counter.getMeanPhi(),
-                        counter.getMeanTheta(), counter.angleErr());
+                        Math.PI/2 - counter.getMeanTheta(), counter.angleErr());
             }
         }
     }
