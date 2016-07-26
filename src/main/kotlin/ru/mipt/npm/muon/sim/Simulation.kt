@@ -138,13 +138,25 @@ class UniformTrackGenerator(val maxX: Double = 4 * PIXEL_XY_SIZE, val maxY: Doub
     }
 }
 
-class Cos2TrackGenerator(val maxX: Double = 4 * PIXEL_XY_SIZE, val maxY: Double = 4 * PIXEL_XY_SIZE) : TrackGenerator {
+/**
+ * Generating surface distribution using accept-reject method
+ */
+class Cos2TrackGenerator(val power: Double = 2.0, val maxX: Double = 4 * PIXEL_XY_SIZE, val maxY: Double = 4 * PIXEL_XY_SIZE) : TrackGenerator {
     override fun generate(rnd: RandomGenerator): Track {
         val x = (1 - rnd.nextDouble() * 2.0) * maxX;
         val y = (1 - rnd.nextDouble() * 2.0) * maxY;
         val phi = (1 - rnd.nextDouble() * 2.0) * Math.PI;
-        val theta = Math.acos(rnd.nextDouble());
-        return makeTrack(x, y, theta, phi);
+
+
+        for (i in 0..500) {
+            val thetaCandidate = Math.acos(rnd.nextDouble());
+            val u = rnd.nextDouble();
+            val sin = Math.sin(thetaCandidate);
+            if (u < Math.pow(sin, power) / sin) {
+                return makeTrack(x, y, thetaCandidate, phi);
+            }
+        }
+        throw RuntimeException("Failed to generate theta from distribution");
     }
 }
 
@@ -173,7 +185,7 @@ fun main(args: Array<String>) {
         if (counter.multiplicity == 3) {
             outStream.printf("%s\t%d\t%.3f\t%.3f\t%.3f%n",
                     counter.id, counter.count, counter.getMeanPhi(),
-                    Math.PI/2 - counter.getMeanTheta(), counter.angleErr());
+                    Math.PI / 2 - counter.getMeanTheta(), counter.angleErr());
         }
     }
 }

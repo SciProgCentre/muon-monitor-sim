@@ -42,7 +42,7 @@ fun main(args: Array<String>) {
     val data = readData(dataFileName);
 
     println("Staring simulation");
-    val sim = Simulation();
+    val sim = Simulation(Cos2TrackGenerator());
     val simResults = sim.simulateN(n);
 
     println("printing results");
