@@ -133,7 +133,7 @@ class UniformTrackGenerator(val maxX: Double = 4 * PIXEL_XY_SIZE, val maxY: Doub
         val x = (1 - rnd.nextDouble() * 2.0) * maxX;
         val y = (1 - rnd.nextDouble() * 2.0) * maxY;
         val phi = (1 - rnd.nextDouble() * 2.0) * Math.PI;
-        val theta = Math.acos(rnd.nextDouble());
+        val theta = Math.PI / 2 - Math.acos(rnd.nextDouble());
         return makeTrack(x, y, theta, phi);
     }
 }

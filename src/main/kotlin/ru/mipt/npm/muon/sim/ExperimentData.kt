@@ -37,13 +37,13 @@ fun main(args: Array<String>) {
     val dataFileName = args[0];
     val n = args.getOrElse(1, { i -> "1000000" }).toInt();
     val fileName = args.getOrNull(2);
-    val multiplicity = args.getOrElse(3,{i-> 3});
+    val multiplicity = args.getOrElse(3,{i-> "3"}).toInt();
 
     println("Reading experiment data");
     val data = readData(dataFileName);
 
     println("Staring simulation");
-    val sim = Simulation(Cos2TrackGenerator());
+    val sim = Simulation();
     val simResults = sim.simulateN(n);
 
     println("printing results");
@@ -59,7 +59,7 @@ fun main(args: Array<String>) {
     data.forEach { entry ->
         if(simResults.containsKey(entry.key)){
             val counter = simResults[entry.key]!!;
-            if(counter.multiplicity==multiplicity) {
+            if(counter.multiplicity == multiplicity) {
                 outStream.printf("%s\t%d\t%d\t%.3f\t%.3f\t%.3f%n",
                         entry.key, entry.value, counter.count, counter.getMeanPhi(),
                         Math.PI/2 - counter.getMeanTheta(), counter.angleErr());
