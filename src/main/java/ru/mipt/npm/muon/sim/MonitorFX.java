@@ -80,9 +80,6 @@ public class MonitorFX extends Application {
 
     private Map<String, Box> pixelMap = new HashMap<>();
 
-    private Simulation sim = new Simulation();
-
-
     private void buildCamera() {
         System.out.println("buildCamera()");
         root.getChildren().add(cameraXform);
@@ -285,7 +282,7 @@ public class MonitorFX extends Application {
     private ToolBar buildToolbar() {
 
         Button simulateButton = new Button("Generate");
-        simulateButton.setOnAction(event -> displayEvent(sim.simulateOne()));
+        simulateButton.setOnAction(event -> displayEvent(SimulationKt.simulateOne(new UniformTrackGenerator())));
 
         Button clearButton = new Button("Clear");
         clearButton.setOnAction(event -> clearEvents());

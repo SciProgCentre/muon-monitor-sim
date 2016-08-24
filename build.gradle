@@ -60,7 +60,12 @@ task evalData4(dependsOn: 'classes', type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 }
 
-
+task eff(dependsOn: 'classes', type: JavaExec) {
+    main = 'ru.mipt.npm.muon.sim.EfficiencyKt'
+    args = ["eff.dat"]
+    standardOutput = java.lang.System.out
+    classpath = sourceSets.main.runtimeClasspath
+}
 
 sourceSets {
     main.java.srcDirs += 'src/main/kotlin'

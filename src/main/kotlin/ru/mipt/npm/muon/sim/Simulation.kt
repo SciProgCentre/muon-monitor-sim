@@ -1,87 +1,79 @@
 package ru.mipt.npm.muon.sim
 
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D
-import org.apache.commons.math3.random.JDKRandomGenerator
 import org.apache.commons.math3.random.RandomGenerator
 import java.io.File
 import java.io.PrintStream
 import java.util.concurrent.ConcurrentHashMap
 import java.util.stream.Stream
 
+
 /**
- * Simulation controls
- * Created by darksnake on 11-May-16.
+ * Simulate single track and returns corresponding event
  */
-class Simulation(val trackGenerator: TrackGenerator = UniformTrackGenerator()) {
-    var rnd: RandomGenerator = JDKRandomGenerator();
+fun simulateOne(trackGenerator: TrackGenerator = UniformTrackGenerator()): Event {
+    val track = trackGenerator.generate(rnd);
+    return buildEventByTrack(track);
+}
+
+private fun eventToString(event: Event): String {
+    return event.hits.sortedBy { it -> it.name }.joinToString(separator = ", ", prefix = "[", postfix = "]")
+}
+
+/**
+ * Simulate n events and count them by identities
+ */
+fun simulateN(n: Int, trackGenerator: TrackGenerator = UniformTrackGenerator()): Map<String, Counter> {
+    val map = ConcurrentHashMap<String, Counter>();
+    //generating stream in parallel
+    Stream.generate { -> simulateOne(trackGenerator) }.limit(n.toLong()).parallel().forEach {
+        val id = it.getIdentity();
+        if (!map.containsKey(id)) {
+            map.put(id, Counter(id, it.hits.size))
+        }
+        map[id]?.putEvent(it);
+    }
+    return map
+}
+
+/**
+ * A counter for events with specific set id
+ * @param id : set id
+ * @param multiplicity : number of pixels in set
+ */
+class Counter(val id: String, val multiplicity: Int) {
+    var count: Int = 0;
+        private set
+    private var sum: Vector3D = Vector3D(0.0, 0.0, 0.0);
+
 
     /**
-     * Simulate single track and returns corresponding event
+     * Using center of mass for averaging
      */
-    fun simulateOne(): Event {
-        val track = trackGenerator.generate(rnd);
-        return buildEventByTrack(track);
+    fun putEvent(event: Event) {
+        count++;
+        sum = sum.add(event.track.getDirection())
     }
 
-    private fun eventToString(event: Event): String {
-        return event.hits.sortedBy { it -> it.name }.joinToString(separator = ", ", prefix = "[", postfix = "]")
-    }
-
-    /**
-     * Simulate n events and count them by identities
-     */
-    fun simulateN(n: Int): Map<String, Counter> {
-        val map = ConcurrentHashMap<String, Counter>();
-        //generating stream in parallel
-        Stream.generate { -> simulateOne() }.limit(n.toLong()).parallel().forEach {
-            val res = simulateOne();
-            val id = res.getIdentity();
-            if (!map.containsKey(id)) {
-                map.put(id, Counter(id, res.hits.size))
-            }
-            map[id]?.putEvent(res);
-        }
-        return map
+    fun average(): Vector3D {
+        return sum.scalarMultiply(1.0 / count);
     }
 
     /**
-     * A counter for events with specific set id
-     * @param id : set id
-     * @param multiplicity : number of pixels in set
+     * <(r-<r>)^2> = <r^2> - <r>^2 = 1 - <r>^2
+     *
      */
-    class Counter(val id: String, val multiplicity: Int) {
-        var count: Int = 0;
-            private set
-        private var sum: Vector3D = Vector3D(0.0, 0.0, 0.0);
+    fun angleErr(): Double {
+        return Math.sqrt(1.0 - average().normSq);
+    }
 
+    fun getMeanPhi(): Double {
+        return sum.alpha;
+    }
 
-        /**
-         * Using center of mass for averaging
-         */
-        fun putEvent(event: Event) {
-            count++;
-            sum = sum.add(event.track.getDirection())
-        }
-
-        fun average(): Vector3D {
-            return sum.scalarMultiply(1.0 / count);
-        }
-
-        /**
-         * <(r-<r>)^2> = <r^2> - <r>^2 = 1 - <r>^2
-         *
-         */
-        fun angleErr(): Double {
-            return Math.sqrt(1.0 - average().normSq);
-        }
-
-        fun getMeanPhi(): Double {
-            return sum.alpha;
-        }
-
-        fun getMeanTheta(): Double {
-            return sum.delta;
-        }
+    fun getMeanTheta(): Double {
+        return sum.delta;
+    }
 
 //        private var phiSum: Double = 0.0;
 //        private var phi2Sum: Double = 0.0;
@@ -117,8 +109,6 @@ class Simulation(val trackGenerator: TrackGenerator = UniformTrackGenerator()) {
 //                    id, count, getMeanPhi(), getPhiErr(), getMeanTheta(), getThetaErr())
 //        }
 
-    }
-
 }
 
 interface TrackGenerator {
@@ -134,6 +124,16 @@ class UniformTrackGenerator(val maxX: Double = 4 * PIXEL_XY_SIZE, val maxY: Doub
         val y = (1 - rnd.nextDouble() * 2.0) * maxY;
         val phi = (1 - rnd.nextDouble() * 2.0) * Math.PI;
         val theta = Math.PI / 2 - Math.acos(rnd.nextDouble());
+        return makeTrack(x, y, theta, phi);
+    }
+}
+
+class FixedAngleGenerator(val phi: Double, val theta: Double,
+                          val maxX: Double = 4 * PIXEL_XY_SIZE,
+                          val maxY: Double = 4 * PIXEL_XY_SIZE) : TrackGenerator {
+    override fun generate(rnd: RandomGenerator): Track {
+        val x = (1 - rnd.nextDouble() * 2.0) * maxX;
+        val y = (1 - rnd.nextDouble() * 2.0) * maxY;
         return makeTrack(x, y, theta, phi);
     }
 }
@@ -162,7 +162,6 @@ class Cos2TrackGenerator(val power: Double = 2.0, val maxX: Double = 4 * PIXEL_X
 
 
 fun main(args: Array<String>) {
-    val sim = Simulation();
     val n = args.getOrElse(0, { i -> "100000" }).toInt();
     val fileName = args.getOrNull(1);
 
@@ -177,7 +176,7 @@ fun main(args: Array<String>) {
     outStream.printf("%s\t%s\t%s\t%s\t%s%n",
             "name", "simCounts", "phi", "theta", "angleErr");
 
-    sim.simulateN(n).values.sortedByDescending { it.count }.forEach { counter ->
+    simulateN(n).values.sortedByDescending { it.count }.forEach { counter ->
         // print only 3-s
 //        if (entry.multiplicity <= 3) {
 //            outStream.println(entry)

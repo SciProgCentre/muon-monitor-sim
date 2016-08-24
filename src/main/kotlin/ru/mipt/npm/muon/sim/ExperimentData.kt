@@ -43,8 +43,7 @@ fun main(args: Array<String>) {
     val data = readData(dataFileName);
 
     println("Staring simulation");
-    val sim = Simulation();
-    val simResults = sim.simulateN(n);
+    val simResults = simulateN(n);
 
     println("printing results");
     var outStream: PrintStream;

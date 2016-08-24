@@ -1,6 +1,8 @@
 package ru.mipt.npm.muon.sim
 
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D
+import org.apache.commons.math3.random.JDKRandomGenerator
+import org.apache.commons.math3.random.RandomGenerator
 import java.util.*
 
 /**
@@ -13,6 +15,9 @@ val PIXEL_Z_SIZE = 30.0;
 val CENTRAL_LAYER_Z = 0.0;
 val UPPER_LAYER_Z = 166.0;
 val LOWER_LAYER_Z =  -180.0;
+
+var rnd: RandomGenerator = JDKRandomGenerator();
+
 val layers = arrayOf(Layer("center", CENTRAL_LAYER_Z), Layer("up", UPPER_LAYER_Z), Layer("bottom", LOWER_LAYER_Z));
 val pixels = buildPixels()
 
