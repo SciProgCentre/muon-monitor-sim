@@ -6,7 +6,7 @@ import org.apache.commons.math3.geometry.euclidean.threed.Vector3D
  * A single pixel
  * Created by darksnake on 09-May-16.
  */
-class Pixel(val name: String, val center: Vector3D, val efficiency: Double = 1.0,
+class Pixel(val name: String, val center: Vector3D, var efficiency: Double = 1.0,
             val xSize: Double = PIXEL_XY_SIZE, val ySize: Double = PIXEL_XY_SIZE, val zSize: Double = PIXEL_Z_SIZE) {
     val layer: Layer = findLayer(center.z);
     private val upLayer = Layer("${name}_up", center.z + zSize / 2.0);

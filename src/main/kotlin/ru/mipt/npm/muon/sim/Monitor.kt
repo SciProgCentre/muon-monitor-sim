@@ -14,7 +14,7 @@ val PIXEL_XY_SIZE = 125.0;
 val PIXEL_Z_SIZE = 30.0;
 val CENTRAL_LAYER_Z = 0.0;
 val UPPER_LAYER_Z = 166.0;
-val LOWER_LAYER_Z =  -180.0;
+val LOWER_LAYER_Z = -180.0;
 
 var rnd: RandomGenerator = JDKRandomGenerator();
 
@@ -34,7 +34,9 @@ fun findLayer(z: Double): Layer {
  * Build map for the whole monitor
  */
 fun buildPixels(): Map<String, Pixel> {
-    var map = HashMap<String, Pixel>();
+    val map = HashMap<String, Pixel>();
+
+    // read geometry file
     ClassLoader.getSystemClassLoader().getResourceAsStream("map-RMM110.sc16").bufferedReader().forEachLine { line ->
         if (line.startsWith(" ")) {
             var split = line.trim().split("\\s+".toPattern());
@@ -45,7 +47,34 @@ fun buildPixels(): Map<String, Pixel> {
             map.putAll(buildDetector(detectorName, Vector3D(x, y, z)))
         }
     }
+
+    //apply efficiencies
+    readEffs().forEach { entry ->
+        if (map.containsKey(entry.key)) {
+            map[entry.key]!!.efficiency = entry.value;
+        }
+    };
+
     return map
+}
+
+fun readEffs(): Map<String, Double> {
+    val effMap = HashMap<String, Double>();
+    var detectorName: String = "";
+    var index: Int = 0;
+    ClassLoader.getSystemClassLoader().getResourceAsStream("Effs-MM-minhits-4.dat").bufferedReader().forEachLine { line ->
+        val trimmed = line.trim()
+        if (trimmed.startsWith("SC")) {
+            detectorName = trimmed.split(Regex("\\s+"))[2];
+        } else if (trimmed.startsWith("pixel")) {
+            index = 0;
+        } else if (!trimmed.isEmpty()) {
+            val eff = trimmed.split(Regex("\\s+"))[1].toDouble();
+            effMap.put("SC${detectorName}_${index}", eff)
+            index++;
+        }
+    }
+    return effMap
 }
 
 /**
