@@ -16,9 +16,22 @@ val CENTRAL_LAYER_Z = 0.0;
 val UPPER_LAYER_Z = 166.0;
 val LOWER_LAYER_Z = -180.0;
 
+// minimal track length in detector
+val MINIMAL_TRACK_LENGTH = 10.0;
+
 var rnd: RandomGenerator = JDKRandomGenerator();
 
-val layers = arrayOf(Layer("center", CENTRAL_LAYER_Z), Layer("up", UPPER_LAYER_Z), Layer("bottom", LOWER_LAYER_Z));
+val layers = arrayOf(
+        Layer("center", CENTRAL_LAYER_Z),
+        Layer("center+", CENTRAL_LAYER_Z + PIXEL_Z_SIZE / 2),
+        Layer("center-", CENTRAL_LAYER_Z - PIXEL_Z_SIZE / 2),
+        Layer("up", UPPER_LAYER_Z),
+        Layer("up+", UPPER_LAYER_Z + PIXEL_Z_SIZE / 2),
+        Layer("up-", UPPER_LAYER_Z - PIXEL_Z_SIZE / 2),
+        Layer("bottom", LOWER_LAYER_Z),
+        Layer("bottom+", LOWER_LAYER_Z + PIXEL_Z_SIZE / 2),
+        Layer("bottom-", LOWER_LAYER_Z - PIXEL_Z_SIZE / 2)
+);
 val pixels = buildPixels()
 
 fun findLayer(z: Double): Layer {

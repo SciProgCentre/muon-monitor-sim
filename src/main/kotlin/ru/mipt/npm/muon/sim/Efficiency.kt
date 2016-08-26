@@ -45,10 +45,10 @@ fun main(args: Array<String>) {
     updateProgress(0.0);
     for (theta in 0..89 step 10) {
         for (phi in 0..360 step 10) {
-            val eff = simulateSingleDirection(Math.PI / 180 * (90 - theta), Math.PI / 180 * (phi - 180)) { counter -> counter.multiplicity >=3 }
+            val eff = simulateSingleDirection(Math.PI / 180 * (90 - theta), Math.PI / 180 * (phi - 180)) { counter -> counter.multiplicity >= 3 }
             outStream.printf("%d\t%d\t%g%n", theta, phi, eff);
         }
-        updateProgress(theta.toDouble()/90);
+        updateProgress((theta.toDouble() + 10.0) / 90.0);
     }
 
 }
