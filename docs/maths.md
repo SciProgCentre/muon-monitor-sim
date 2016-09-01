@@ -1,5 +1,4 @@
-Muon monitor apparatus resolution function
-==========================================
+#Muon monitor apparatus resolution function
 
 The number of experimental hits for given set of pixels could be given
 by the following expression:
