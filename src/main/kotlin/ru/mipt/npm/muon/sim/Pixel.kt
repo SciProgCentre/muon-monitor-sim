@@ -19,7 +19,7 @@ class Pixel(val name: String, val center: Vector3D, var efficiency: Double = 1.0
             Plane(center.add(Vector3D(0.0, -PIXEL_XY_SIZE / 2, 0.0)), Vector3D(0.0, -1.0, 0.0), GEOMETRY_TOLERANCE));
 
     //TODO add efficiency
-    fun containsPoint(x: Double, y: Double, z: Double, tolerance :Double = GEOMETRY_TOLERANCE): Boolean {
+    fun containsPoint(x: Double, y: Double, z: Double, tolerance: Double = GEOMETRY_TOLERANCE): Boolean {
         return x <= this.center.x + this.xSize / 2.0 + tolerance && x >= this.center.x - this.xSize / 2.0 - tolerance &&
                 y <= this.center.y + this.ySize / 2.0 + tolerance && y >= this.center.y - this.ySize / 2.0 - tolerance &&
                 z <= this.center.z + this.zSize / 2.0 + tolerance && z >= this.center.z - this.zSize / 2.0 - tolerance;
@@ -28,13 +28,12 @@ class Pixel(val name: String, val center: Vector3D, var efficiency: Double = 1.0
     /**
      * Check if pixel contains point
      */
-    fun containsPoint(point: Vector3D, tolerance :Double = GEOMETRY_TOLERANCE): Boolean {
+    fun containsPoint(point: Vector3D, tolerance: Double = GEOMETRY_TOLERANCE): Boolean {
         return containsPoint(point.x, point.y, point.z, tolerance);
     }
 
     /**
      * Check if track crosses the pixel
-     * TODO add track length analysis
      */
     fun isHit(track: Track): Boolean {
         //check central plane as well as upper and bottom planes of the layer
@@ -54,20 +53,25 @@ class Pixel(val name: String, val center: Vector3D, var efficiency: Double = 1.0
                 false -> bottomIntersection
             }
             val horizontalHitPoint = getHorizontalHitPoint(track);
-            val length = verticalHitPoint.distance(horizontalHitPoint);
-            return length >= MINIMAL_TRACK_LENGTH;
+            if (horizontalHitPoint == null) {
+                //If horizontal intersection could not be found, it is near the rib and therefore length is always sufficient
+                return true;
+            } else {
+                val length = verticalHitPoint.distance(horizontalHitPoint);
+                return length >= MINIMAL_TRACK_LENGTH;
+            }
         }
     }
 
-    fun getHorizontalHitPoint(track: Track): Vector3D {
+    fun getHorizontalHitPoint(track: Track): Vector3D? {
         for (p in sideLayers) {
             val intersection = p.intersection(track.line);
             //FIXME there is a problem with geometric tolerances here
-            if (intersection != null && containsPoint(intersection, 100* GEOMETRY_TOLERANCE)) {
+            if (intersection != null && containsPoint(intersection, 100 * GEOMETRY_TOLERANCE)) {
                 return intersection;
             }
         }
-        error("No side intersection");
+        return null;
     }
 
     private fun eff(): Boolean {
