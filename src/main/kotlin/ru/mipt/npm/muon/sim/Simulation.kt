@@ -160,31 +160,44 @@ class Cos2TrackGenerator(val power: Double = 2.0, val maxX: Double = 4 * PIXEL_X
     }
 }
 
+enum class outputType {
+    table, raw, json
+}
 
 fun main(args: Array<String>) {
     val n = args.getOrElse(0, { i -> "100000" }).toInt();
     val fileName = args.getOrNull(1);
+    val outputFormat = outputType.valueOf(args.getOrElse(2) { i -> "table" });
 
-    var outStream: PrintStream;
-    if (fileName != null) {
-        outStream = PrintStream(File(fileName));
+    val outStream = if (fileName != null) {
+        PrintStream(File(fileName));
     } else {
-        outStream = System.out;
+        System.out;
     }
     println("Staring simulation with ${n} particles");
 
-    outStream.printf("%s\t%s\t%s\t%s\t%s%n",
-            "name", "simCounts", "phi", "theta", "angleErr");
+    when (outputFormat) {
+        outputType.table -> {
+            outStream.printf("%s\t%s\t%s\t%s\t%s%n",
+                    "name", "simCounts", "phi", "theta", "angleErr");
 
-    simulateN(n).values.sortedByDescending { it.count }.forEach { counter ->
-        // print only 3-s
-//        if (entry.multiplicity <= 3) {
-//            outStream.println(entry)
-//        }
-        if (counter.multiplicity == 3) {
-            outStream.printf("%s\t%d\t%.3f\t%.3f\t%.3f%n",
-                    counter.id, counter.count, counter.getMeanPhi(),
-                    Math.PI / 2 - counter.getMeanTheta(), counter.angleErr());
+            simulateN(n).values.sortedByDescending { it.count }.forEach { counter ->
+                if (counter.multiplicity == 3) {
+                    outStream.printf("%s\t%d\t%.3f\t%.3f\t%.3f%n",
+                            counter.id, counter.count, counter.getMeanPhi(),
+                            Math.PI / 2 - counter.getMeanTheta(), counter.angleErr());
+                }
+            }
+        }
+        outputType.raw -> {
+            Stream.generate { -> simulateOne() }.limit(n.toLong()).forEach {
+                printEventAsRaw(outStream, it)
+            }
+        }
+        outputType.json->{
+            TODO();
         }
     }
+
+
 }

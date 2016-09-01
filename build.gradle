@@ -57,6 +57,12 @@ task simulate(dependsOn: 'classes', type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 }
 
+task simulateRaw(dependsOn: 'classes', type: JavaExec) {
+    main = 'ru.mipt.npm.muon.sim.SimulationKt'
+    args = [100000, "hitsRaw.dat","raw"]
+    classpath = sourceSets.main.runtimeClasspath
+}
+
 task evalData(dependsOn: 'classes', type: JavaExec) {
     main = 'ru.mipt.npm.muon.sim.ExperimentDataKt'
     args = ["D:\\Work\\MIPT\\Projects\\muonsim-data\\Event_Counters summ RMM108-RMM132",10000000, "eval.dat",3]

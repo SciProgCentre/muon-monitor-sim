@@ -33,6 +33,20 @@ class Pixel(val name: String, val center: Vector3D, var efficiency: Double = 1.0
     }
 
     /**
+     * Return number of detector pixel like SCxx-12
+     */
+    fun getDetectorNumber(): Int{
+        return this.name.substring(2,4).toInt();
+    }
+
+    /**
+     * Return number of pixel in detector like SC79-xx
+     */
+    fun getPixelNumber(): Int{
+        return this.name.substring(5).toInt();
+    }
+
+    /**
      * Check if track crosses the pixel
      */
     fun isHit(track: Track): Boolean {
