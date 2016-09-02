@@ -5,7 +5,11 @@ import org.apache.commons.math3.random.RandomGenerator
 import java.io.File
 import java.io.PrintStream
 import java.util.concurrent.ConcurrentHashMap
+import java.util.stream.Collectors
 import java.util.stream.Stream
+import javax.json.Json
+import javax.json.JsonObject
+import javax.json.stream.JsonGenerator
 
 
 /**
@@ -174,7 +178,7 @@ fun main(args: Array<String>) {
     } else {
         System.out;
     }
-    println("Staring simulation with ${n} particles");
+    println("Staring simulation with $n particles");
 
     when (outputFormat) {
         outputType.table -> {
@@ -194,8 +198,12 @@ fun main(args: Array<String>) {
                 printEventAsRaw(outStream, it)
             }
         }
-        outputType.json->{
-            TODO();
+        outputType.json -> {
+            val json = Json.createArrayBuilder();
+            Stream.generate { -> eventAsJson(simulateOne()) }.parallel().limit(n.toLong())
+                    .collect(Collectors.toList<JsonObject>()).forEach {it:JsonObject-> json.add(it) };
+            val writer = Json.createWriterFactory(mapOf(JsonGenerator.PRETTY_PRINTING to true)).createWriter(outStream);
+            writer.write(json.build())
         }
     }
 
