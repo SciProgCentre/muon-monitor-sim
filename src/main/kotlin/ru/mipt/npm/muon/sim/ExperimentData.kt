@@ -1,17 +1,20 @@
 package ru.mipt.npm.muon.sim
 
 import java.io.File
+import java.io.InputStream
 import java.io.PrintStream
 import java.util.*
+import java.util.zip.ZipFile
 
 /**
  * Reading Almaz experimental frequency files
  * Created by darksnake on 19-Jul-16.
  */
 
-fun readData(fileName: String): Map<String, Int> {
+fun readData(stream: InputStream): Map<String, Int> {
     val res = HashMap<String, Int>();
-    val dataFile = File(fileName);
+
+    val dataFile = stream.bufferedReader();
 
     var count: Int = 0;
     var names = HashSet<String>();
@@ -34,13 +37,19 @@ fun readData(fileName: String): Map<String, Int> {
 }
 
 fun main(args: Array<String>) {
-    val dataFileName = args[0];
+    val dataFileName = args[0]
     val n = args.getOrElse(1, { i -> "1000000" }).toInt();
     val fileName = args.getOrNull(2);
     val multiplicity = args.getOrElse(3, { i -> "3" }).toInt();
 
     println("Reading experiment data");
-    val data = readData(dataFileName);
+    val data: Map<String, Int> = if (dataFileName.endsWith("zip")) {
+        val zipFile = ZipFile(dataFileName);
+        //read first element from the zip file
+        readData(zipFile.getInputStream(zipFile.entries().nextElement()))
+    } else {
+        readData(File(dataFileName).inputStream());
+    }
 
     println("Staring simulation");
     val simResults = simulateN(n);
