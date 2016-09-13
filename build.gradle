@@ -74,19 +74,19 @@ task simulateJSON(dependsOn: 'classes', type: JavaExec) {
 
 task evalData(dependsOn: 'classes', type: JavaExec) {
     main = 'ru.mipt.npm.muon.sim.ExperimentDataKt'
-    args = ["D:\\Work\\MIPT\\Projects\\muonsim-data\\Event_Counters summ RMM108-RMM132",10000000, "eval.dat",3]
+    args = ["data.zip",10000000, "eval.dat",3]
     classpath = sourceSets.main.runtimeClasspath
 }
 
 task evalData4(dependsOn: 'classes', type: JavaExec) {
     main = 'ru.mipt.npm.muon.sim.ExperimentDataKt'
-    args = ["D:\\Work\\MIPT\\Projects\\muonsim-data\\Event_Counters summ RMM108-RMM132",10000000, "eval4.dat",4]
+    args = ["data.zip",10000000, "eval4.dat",4]
     classpath = sourceSets.main.runtimeClasspath
 }
 
 task evalDataAll(dependsOn: 'classes', type: JavaExec) {
     main = 'ru.mipt.npm.muon.sim.ExperimentDataKt'
-    args = ["D:\\Work\\MIPT\\Projects\\muonsim-data\\Event_Counters summ RMM108-RMM132",10000000, "evalAll.dat",-1]
+    args = ["data.zip",10000000, "evalAll.dat",-1]
     classpath = sourceSets.main.runtimeClasspath
 }
 
