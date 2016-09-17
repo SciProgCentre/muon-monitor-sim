@@ -1,0 +1,146 @@
+{
+    "beaker": "2",
+    "evaluators": [
+        {
+            "name": "HTML",
+            "plugin": "HTML",
+            "view": {
+                "cm": {
+                    "mode": "htmlmixed"
+                }
+            }
+        },
+        {
+            "name": "JavaScript",
+            "plugin": "JavaScript",
+            "view": {
+                "cm": {
+                    "mode": "javascript",
+                    "background": "#FFE0F0"
+                }
+            },
+            "languageVersion": "ES2015"
+        },
+        {
+            "name": "Groovy",
+            "plugin": "Groovy",
+            "imports": "graxxia.*\ncom.twosigma.beaker.NamespaceClient\ncom.twosigma.beaker.BeakerProgressUpdate\ncom.twosigma.beaker.chart.Color\ncom.twosigma.beaker.chart.GradientColor\ncom.twosigma.beaker.chart.legend.*\ncom.twosigma.beaker.chart.Filter\ncom.twosigma.beaker.chart.xychart.*\ncom.twosigma.beaker.chart.xychart.plotitem.*\ncom.twosigma.beaker.chart.categoryplot.*\ncom.twosigma.beaker.chart.categoryplot.plotitem.*\ncom.twosigma.beaker.chart.histogram.*\ncom.twosigma.beaker.chart.treemap.*\ncom.twosigma.beaker.chart.treemap.util.*\nnet.sf.jtreemap.swing.*\ncom.twosigma.beaker.chart.heatmap.HeatMap\ncom.twosigma.beaker.chart.KeyboardCodes\ncom.twosigma.beaker.jvm.object.*\ncom.twosigma.beaker.easyform.*\ncom.twosigma.beaker.easyform.formitem.*",
+            "view": {
+                "cm": {
+                    "mode": "groovy"
+                }
+            }
+        }
+    ],
+    "cells": [
+        {
+            "id": "markdownYwoNWN",
+            "type": "markdown",
+            "body": [
+                "##Running gradle build to insure it is up to date"
+            ],
+            "evaluatorReader": false
+        },
+        {
+            "id": "codetR5vqv",
+            "type": "code",
+            "evaluator": "Groovy",
+            "input": {
+                "body": [
+                    "//put path to muonsim project here",
+                    "muonsimPath = \"D:\\\\Work\\\\MIPT\\\\Projects\\\\muonsim\\\\\"",
+                    "",
+                    "//in linux remove .bat",
+                    "def process = new ProcessBuilder(muonsimPath + \"gradlew.bat\", \"shadowJar\")",
+                    "  .redirectErrorStream(true)",
+                    "  .directory(new File(muonsimPath))",
+                    "  .start()",
+                    "process.text.eachLine {println it}"
+                ]
+            },
+            "output": {
+                "state": {},
+                "result": {
+                    "type": "Results",
+                    "outputdata": [
+                        {
+                            "type": "out",
+                            "value": ":compileKotlin UP-TO-DATE\r\n:compileJava UP-TO-DATE\r\n:processResources UP-TO-DATE\r\n:classes UP-TO-DATE\r\n:shadowJar UP-TO-DATE\r\n\r\nBUILD SUCCESSFUL\r\n\r\nTotal time: 5.484 secs\r\n"
+                        }
+                    ]
+                },
+                "selectedType": "Results",
+                "pluginName": "Groovy",
+                "shellId": "a108c59e-781d-4a6e-849f-3e808aeef8a5",
+                "elapsedTime": 6591,
+                "height": 163
+            },
+            "evaluatorReader": true,
+            "lineCount": 9
+        },
+        {
+            "id": "markdownhMNE72",
+            "type": "markdown",
+            "body": [
+                "##Loading resulting jar file into classpath"
+            ],
+            "evaluatorReader": false
+        },
+        {
+            "id": "codeoI3tiJ",
+            "type": "code",
+            "evaluator": "Groovy",
+            "input": {
+                "body": [
+                    "ClassLoader.systemClassLoader.addURL(new File(muonsimPath,\"build/libs/muonsim-1.0-SNAPSHOT-all.jar\" ).toURL())"
+                ]
+            },
+            "output": {
+                "state": {},
+                "selectedType": "Hidden",
+                "pluginName": "Groovy",
+                "shellId": "a108c59e-781d-4a6e-849f-3e808aeef8a5",
+                "elapsedTime": 560
+            },
+            "evaluatorReader": true,
+            "lineCount": 1
+        },
+        {
+            "id": "codezpfizr",
+            "type": "code",
+            "evaluator": "Groovy",
+            "input": {
+                "body": [
+                    "import ru.mipt.npm.muon.sim.SimulationKt",
+                    "import ru.mipt.npm.muon.sim.UniformTrackGenerator",
+                    "",
+                    "SimulationKt.directionMap()",
+                    ""
+                ]
+            },
+            "output": {
+                "state": {},
+                "selectedType": "BeakerDisplay",
+                "pluginName": "Groovy",
+                "shellId": "a108c59e-781d-4a6e-849f-3e808aeef8a5",
+                "elapsedTime": 550,
+                "result": {
+                    "type": "BeakerDisplay",
+                    "innertype": "Error",
+                    "object": [
+                        "java.lang.ClassCastException: java.lang.Double cannot be cast to java.lang.Integer\r<br/>",
+                        "\tat ru.mipt.npm.muon.sim.SimulationKt.directionMap(Simulation.kt:181)\r",
+                        "\tat ru.mipt.npm.muon.sim.SimulationKt$directionMap.call(Unknown Source)\r",
+                        "\tat script1474045397803846489232.run(script1474045397803846489232.groovy:4)\r",
+                        "\tat com.twosigma.beaker.groovy.utils.GroovyEvaluator$workerThread$MyRunnable.run(GroovyEvaluator.java:378)\r",
+                        ""
+                    ]
+                },
+                "height": 132
+            },
+            "evaluatorReader": true,
+            "lineCount": 5
+        }
+    ],
+    "namespace": {}
+}

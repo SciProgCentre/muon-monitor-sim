@@ -1,7 +1,6 @@
 package ru.mipt.npm.muon.sim
 
-import java.io.File
-import java.io.PrintStream
+import org.apache.commons.cli.CommandLine
 
 /**
  * Created by darksnake on 24-Aug-16.
@@ -32,15 +31,8 @@ fun updateProgress(progressPercentage: Double) {
     print("]")
 }
 
-fun main(args: Array<String>) {
-    val fileName = args.getOrNull(0);
-
-    var outStream: PrintStream;
-    if (fileName != null) {
-        outStream = PrintStream(File(fileName));
-    } else {
-        outStream = System.out;
-    }
+fun generateEfficiency(cli: CommandLine) {
+    val outStream = outputStream(cli);
 
     updateProgress(0.0);
     for (theta in 0..89 step 10) {
@@ -50,5 +42,4 @@ fun main(args: Array<String>) {
         }
         updateProgress((theta.toDouble() + 10.0) / 90.0);
     }
-
 }
