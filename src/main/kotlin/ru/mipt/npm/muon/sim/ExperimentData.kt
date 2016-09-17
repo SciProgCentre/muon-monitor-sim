@@ -1,8 +1,8 @@
 package ru.mipt.npm.muon.sim
 
+import org.apache.commons.cli.CommandLine
 import java.io.File
 import java.io.InputStream
-import java.io.PrintStream
 import java.util.*
 import java.util.zip.ZipFile
 
@@ -36,11 +36,14 @@ fun readData(stream: InputStream): Map<String, Int> {
     return res;
 }
 
-fun main(args: Array<String>) {
-    val dataFileName = args[0]
-    val n = args.getOrElse(1, { i -> "1000000" }).toInt();
-    val fileName = args.getOrNull(2);
-    val multiplicity = args.getOrElse(3, { i -> "3" }).toInt();
+fun evalData(cli: CommandLine) {
+
+    val n = cli.getOptionValue("n", "100000").toInt();
+
+    val dataFileName = cli.getOptionValue("d","data.zip");
+    val multiplicity = cli.getOptionValue("m","-1").toInt();
+
+    val outStream = outputStream(cli);
 
     println("Reading experiment data");
     val data: Map<String, Int> = if (dataFileName.endsWith("zip")) {
@@ -55,12 +58,6 @@ fun main(args: Array<String>) {
     val simResults = simulateN(n);
 
     println("printing results");
-    var outStream: PrintStream;
-    if (fileName != null) {
-        outStream = PrintStream(File(fileName));
-    } else {
-        outStream = System.out;
-    }
     outStream.printf("%s\t%s\t%s\t%s\t%s\t%s%n",
             "name", "dataCounts", "simCounts", "phi",
             "theta", "angleErr");

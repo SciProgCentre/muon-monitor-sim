@@ -1,9 +1,11 @@
 package ru.mipt.npm.muon.sim
 
+import org.apache.commons.cli.CommandLine
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D
 import org.apache.commons.math3.random.RandomGenerator
 import java.io.File
-import java.io.PrintStream
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 import java.util.concurrent.ConcurrentHashMap
 import java.util.stream.Collectors
 import java.util.stream.Stream
@@ -164,20 +166,39 @@ class Cos2TrackGenerator(val power: Double = 2.0, val maxX: Double = 4 * PIXEL_X
     }
 }
 
+@SuppressWarnings("unchecked")
+fun directionMap(): Map<String, Vector3D> {
+    val mapFile = File("direction.map");
+    if (mapFile.exists()) {
+        try {
+            val ois = ObjectInputStream(mapFile.inputStream());
+            val res = ois.readObject() as? Map<String, Vector3D>;
+            if (res != null) {
+                return res;
+            }
+        } catch (ex: Exception) {
+            println("Failed to load direction map. Recalculating");
+        }
+    }
+
+    val map = simulateN(1e7.toInt()).mapValues { entry -> entry.value.average() }
+    val oos = ObjectOutputStream(mapFile.outputStream());
+    oos.writeObject(map);
+    oos.close()
+    return map;
+}
+
 enum class outputType {
     table, raw, json
 }
 
-fun main(args: Array<String>) {
-    val n = args.getOrElse(0, { i -> "100000" }).toInt();
-    val fileName = args.getOrNull(1);
-    val outputFormat = outputType.valueOf(args.getOrElse(2) { i -> "table" });
+fun runSimulation(cli: CommandLine) {
+    val n = cli.getOptionValue("n", "100000").toInt();
 
-    val outStream = if (fileName != null) {
-        PrintStream(File(fileName));
-    } else {
-        System.out;
-    }
+    val outputFormat = outputType.valueOf(cli.getOptionValue("format", "table"));
+
+    val outStream = outputStream(cli);
+
     println("Staring simulation with $n particles");
 
     when (outputFormat) {
@@ -201,11 +222,9 @@ fun main(args: Array<String>) {
         outputType.json -> {
             val json = Json.createArrayBuilder();
             Stream.generate { -> eventAsJson(simulateOne()) }.parallel().limit(n.toLong())
-                    .collect(Collectors.toList<JsonObject>()).forEach {it:JsonObject-> json.add(it) };
+                    .collect(Collectors.toList<JsonObject>()).forEach { it: JsonObject -> json.add(it) };
             val writer = Json.createWriterFactory(mapOf(JsonGenerator.PRETTY_PRINTING to true)).createWriter(outStream);
             writer.write(json.build())
         }
     }
-
-
 }
