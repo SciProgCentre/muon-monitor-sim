@@ -115,6 +115,14 @@ task eff(dependsOn: 'classes', type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 }
 
+task evalDataFiltered(dependsOn: 'classes', type: JavaExec) {
+    main = mainClassName
+    args = ["evalData", "-n", "10000000", "-f", "evalFiltered.dat", "--multiplicity=-1", "-d D:\\Work\\MIPT\\Projects\\muonsim-data\\Event_Counters multipl3 RMM103-RMM132"]
+    group = "muonsim"
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+
 sourceSets {
     main.java.srcDirs += 'src/main/kotlin'
 }

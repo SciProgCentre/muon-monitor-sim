@@ -1,6 +1,5 @@
 package ru.mipt.npm.muon.sim
 
-import org.apache.commons.cli.CommandLine
 import java.io.File
 import java.io.InputStream
 import java.util.*
@@ -36,14 +35,14 @@ fun readData(stream: InputStream): Map<String, Int> {
     return res;
 }
 
-fun evalData(cli: CommandLine) {
+fun evalData(parameters: Map<String, String>) {
 
-    val n = cli.getOptionValue("n", "100000").toInt();
+    val n = parameters.getOrElse("n") { "100000" }.toInt();
 
-    val dataFileName = cli.getOptionValue("d","data.zip");
-    val multiplicity = cli.getOptionValue("m","-1").toInt();
+    val dataFileName = parameters.getOrElse("d") { "data.zip" };
+    val multiplicity = parameters.getOrElse("m") { "-1" }.toInt();
 
-    val outStream = outputStream(cli);
+    val outStream = outputStream(parameters);
 
     println("Reading experiment data");
     val data: Map<String, Int> = if (dataFileName.endsWith("zip")) {
@@ -61,14 +60,21 @@ fun evalData(cli: CommandLine) {
     outStream.printf("%s\t%s\t%s\t%s\t%s\t%s%n",
             "name", "dataCounts", "simCounts", "phi",
             "theta", "angleErr");
+    var simCount = 0;
+    var dataCount = 0;
+
     data.forEach { entry ->
         if (simResults.containsKey(entry.key)) {
             val counter = simResults[entry.key]!!;
             if (multiplicity < 0 || counter.multiplicity == multiplicity) {
+                simCount += counter.count;
+                dataCount += entry.value;
                 outStream.printf("%s\t%d\t%d\t%.3f\t%.3f\t%.3f%n",
                         entry.key, entry.value, counter.count, counter.getMeanPhi(),
                         Math.PI / 2 - counter.getMeanTheta(), counter.angleErr());
             }
         }
     }
+    println("The number of used simulated muons is ${simCount}")
+    println("The number of used data muons is ${dataCount}")
 }

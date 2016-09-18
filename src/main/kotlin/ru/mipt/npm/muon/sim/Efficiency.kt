@@ -1,7 +1,5 @@
 package ru.mipt.npm.muon.sim
 
-import org.apache.commons.cli.CommandLine
-
 /**
  * Created by darksnake on 24-Aug-16.
  */
@@ -31,8 +29,8 @@ fun updateProgress(progressPercentage: Double) {
     print("]")
 }
 
-fun generateEfficiency(cli: CommandLine) {
-    val outStream = outputStream(cli);
+fun generateEfficiency(parameters: Map<String, String>) {
+    val outStream = outputStream(parameters);
 
     updateProgress(0.0);
     for (theta in 0..89 step 10) {

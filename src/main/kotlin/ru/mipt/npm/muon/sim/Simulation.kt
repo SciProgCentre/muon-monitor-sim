@@ -1,6 +1,5 @@
 package ru.mipt.npm.muon.sim
 
-import org.apache.commons.cli.CommandLine
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D
 import org.apache.commons.math3.random.RandomGenerator
 import java.io.File
@@ -192,12 +191,12 @@ enum class outputType {
     table, raw, json
 }
 
-fun runSimulation(cli: CommandLine) {
-    val n = cli.getOptionValue("n", "100000").toInt();
+fun runSimulation(parameters: Map<String, String>) {
+    val n = parameters.getOrElse("n") { "100000" }.toInt();
 
-    val outputFormat = outputType.valueOf(cli.getOptionValue("format", "table"));
+    val outputFormat = outputType.valueOf(parameters.getOrElse("format") { "table" });
 
-    val outStream = outputStream(cli);
+    val outStream = outputStream(parameters);
 
     println("Staring simulation with $n particles");
 
