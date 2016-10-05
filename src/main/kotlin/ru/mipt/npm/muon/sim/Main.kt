@@ -43,7 +43,7 @@ fun main(args: Array<String>) {
     val clp = DefaultParser();
 
     val command = args[0];
-    val truncateArgs = args.copyOfRange(0, args.size - 1);
+    val truncateArgs = args.copyOfRange(0, args.size);
     val cli = clp.parse(options, truncateArgs)
 
     val parameters = getParameters(cli);
@@ -58,8 +58,8 @@ fun main(args: Array<String>) {
 
 fun getParameters(cli: CommandLine): Map<String, String> {
     val map = HashMap<String, String>();
-    for(opt in cli){
-        map.put(opt.opt,opt.valuesList.joinToString(separator = " "))
+    for (opt in cli) {
+        map.put(opt.longOpt, opt.valuesList.joinToString(separator = " "))
     }
     return map;
 }
