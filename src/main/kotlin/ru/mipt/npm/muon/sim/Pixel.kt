@@ -56,7 +56,7 @@ class Pixel(val name: String, val center: Vector3D, var efficiency: Double = 1.0
         val upperHit = containsPoint(upperIntersection);
         val bottomHit = containsPoint(bottomIntersection);
 
-
+//        return (upperHit||bottomHit) && eff();
         if (!bottomHit && !upperHit) {
             return false;
         } else if (upperHit && bottomHit) {
@@ -72,7 +72,7 @@ class Pixel(val name: String, val center: Vector3D, var efficiency: Double = 1.0
                 return true;
             } else {
                 val length = verticalHitPoint.distance(horizontalHitPoint);
-                return length >= MINIMAL_TRACK_LENGTH;
+                return (length >= MINIMAL_TRACK_LENGTH) && eff();
             }
         }
     }
