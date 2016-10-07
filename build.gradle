@@ -123,6 +123,10 @@ task evalDataFiltered(dependsOn: 'classes', type: JavaExec) {
 }
 
 
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.1'
+}
+
 sourceSets {
     main.java.srcDirs += 'src/main/kotlin'
 }
