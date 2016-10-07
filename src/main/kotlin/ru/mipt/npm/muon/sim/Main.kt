@@ -13,9 +13,9 @@ import java.util.*
 fun main(args: Array<String>) {
 
     val options = Options().apply {
-        addOption("o", "out", true, "Output directory. By default uses \"\\output\".")
+        addOption("o", "outputDir", true, "Output directory. By default uses \"\\output\".")
         addOption(Option.builder("f")
-                .longOpt("dataFile")
+                .longOpt("outputFile")
                 .hasArgs()
                 .desc("Output file name.")
                 .build()
@@ -65,8 +65,8 @@ fun getParameters(cli: CommandLine): Map<String, String> {
 }
 
 fun outputStream(parameters: Map<String, String>): PrintStream {
-    val outputDir = parameters.getOrElse("o") { "output" };
-    val fileName = parameters.getOrElse("file") { "simulation.dat" }
+    val outputDir = parameters.getOrElse("outputDir") { "output" };
+    val fileName = parameters.getOrElse("outputFile") { "simulation.dat" }
     if (!fileName.isEmpty()) {
         val outDir = File(outputDir);
         if (!outDir.exists()) {
