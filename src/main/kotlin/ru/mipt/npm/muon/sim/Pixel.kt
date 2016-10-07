@@ -12,6 +12,7 @@ class Pixel(val name: String, val center: Vector3D, var efficiency: Double = 1.0
     //    val layer: Layer = findLayer(center.z);
     private val upLayer = findLayer(center.z + zSize / 2.0)//Layer("${name}_up", center.z + zSize / 2.0);
     private val bottomLayer = findLayer(center.z - zSize / 2.0)//Layer("${name}_bottom", center.z - zSize / 2.0);
+    private val centralLayer = findLayer(center.z)
 
     val sideLayers: Array<Plane> = arrayOf(Plane(center.add(Vector3D(PIXEL_XY_SIZE / 2, 0.0, 0.0)), Vector3D(1.0, 0.0, 0.0), GEOMETRY_TOLERANCE),
             Plane(center.add(Vector3D(-PIXEL_XY_SIZE / 2, 0.0, 0.0)), Vector3D(-1.0, 0.0, 0.0), GEOMETRY_TOLERANCE),
@@ -56,7 +57,7 @@ class Pixel(val name: String, val center: Vector3D, var efficiency: Double = 1.0
         val upperHit = containsPoint(upperIntersection);
         val bottomHit = containsPoint(bottomIntersection);
 
-//        return (upperHit||bottomHit) && eff();
+//        return (upperHit||bottomHit||containsPoint(centralLayer.intersect(track))) && eff();
         if (!bottomHit && !upperHit) {
             return false;
         } else if (upperHit && bottomHit) {
