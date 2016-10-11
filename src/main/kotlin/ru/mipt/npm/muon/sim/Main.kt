@@ -24,6 +24,7 @@ fun main(args: Array<String>) {
         addOption("F", "format", true,
                 "Format for simulation output. Can be one of  the list [table, raw, json]. By default uses table")
         addOption("d", "dataFile", true, "Input experiment data file")
+        addOption("g", "generator", true, "File with binned distribution for generator in format of \"phi theta prob\". If not present, then the uniform distribution is used.")
         addOption("m", "multiplicity", true, "Filter output with given pixel multiplicity. By default uses -1 which menas no filtering is applyed")
 
     };
