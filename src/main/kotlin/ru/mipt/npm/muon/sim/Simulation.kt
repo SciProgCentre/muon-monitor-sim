@@ -1,10 +1,11 @@
 package ru.mipt.npm.muon.sim
 
+import org.apache.commons.math3.distribution.EnumeratedRealDistribution
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D
-import org.apache.commons.math3.random.RandomGenerator
 import java.io.File
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.stream.Collectors
 import java.util.stream.Stream
@@ -17,7 +18,7 @@ import javax.json.stream.JsonGenerator
  * Simulate single track and returns corresponding event
  */
 fun simulateOne(trackGenerator: TrackGenerator = UniformTrackGenerator()): Event {
-    val track = trackGenerator.generate(rnd);
+    val track = trackGenerator.generate();
     return buildEventByTrack(track);
 }
 
@@ -117,14 +118,14 @@ class Counter(val id: String, val multiplicity: Int) {
 }
 
 interface TrackGenerator {
-    fun generate(rnd: RandomGenerator): Track;
+    fun generate(): Track;
 }
 
 /**
  * A uniform generator with track bases distributed in square in central plane, uniform phi and cos theta
  */
 class UniformTrackGenerator(val maxX: Double = 4 * PIXEL_XY_SIZE, val maxY: Double = 4 * PIXEL_XY_SIZE) : TrackGenerator {
-    override fun generate(rnd: RandomGenerator): Track {
+    override fun generate(): Track {
         val x = (1 - rnd.nextDouble() * 2.0) * maxX;
         val y = (1 - rnd.nextDouble() * 2.0) * maxY;
         val phi = (1 - rnd.nextDouble() * 2.0) * Math.PI;
@@ -133,10 +134,54 @@ class UniformTrackGenerator(val maxX: Double = 4 * PIXEL_XY_SIZE, val maxY: Doub
     }
 }
 
+/**
+ * Generating empirical distribution from a given file
+ * @param angleStep pixel size in degrees
+ */
+class EmpiricalDistributionTrackGenerator(distributionFile: File, val maxX: Double = 4 * PIXEL_XY_SIZE, val maxY: Double = 4 * PIXEL_XY_SIZE, val angleStep: Double = 1.0) : TrackGenerator {
+
+    private data class Row(val phi: Double, val theta: Double, val prob: Double);
+
+    private val rows = ArrayList<Row>();
+    private val distribution: EnumeratedRealDistribution;
+
+    //reading data file
+    init {
+        distributionFile.forEachLine {
+            if (!it.startsWith("#")) {
+                val split = it.split("\\s+".toPattern());
+                rows.add(Row(split[0].toDouble(), split[1].toDouble(), split[2].toDouble()));
+            }
+        }
+        val singletons = (0..rows.size - 1).map(Int::toDouble).toDoubleArray();
+        val probs = rows.map { it.prob }.toDoubleArray();
+
+        distribution = EnumeratedRealDistribution(singletons, probs);
+    }
+
+    override fun generate(): Track {
+        //random x and y
+        val x = (1 - rnd.nextDouble() * 2.0) * maxX;
+        val y = (1 - rnd.nextDouble() * 2.0) * maxY;
+
+        //get random row
+        val row = rows[distribution.sample().toInt()];
+        val theta = Math.PI / 180.0 * (90 - row.theta);
+        val phi = Math.PI / 180.0 * (row.phi);
+
+        //uniformly distributed angles inside pixels
+        val dTheta = Math.PI / 180.0 * (1.0 - angleStep * rnd.nextDouble());
+        val dPhi = Math.PI / 180.0 * (1.0 - angleStep * rnd.nextDouble());
+
+
+        return makeTrack(x, y, theta + dTheta, phi + dPhi);
+    }
+}
+
 class FixedAngleGenerator(val phi: Double, val theta: Double,
                           val maxX: Double = 4 * PIXEL_XY_SIZE,
                           val maxY: Double = 4 * PIXEL_XY_SIZE) : TrackGenerator {
-    override fun generate(rnd: RandomGenerator): Track {
+    override fun generate(): Track {
         val x = (1 - rnd.nextDouble() * 2.0) * maxX;
         val y = (1 - rnd.nextDouble() * 2.0) * maxY;
         return makeTrack(x, y, theta, phi);
@@ -147,7 +192,7 @@ class FixedAngleGenerator(val phi: Double, val theta: Double,
  * Generating surface distribution using accept-reject method
  */
 class Cos2TrackGenerator(val power: Double = 2.0, val maxX: Double = 4 * PIXEL_XY_SIZE, val maxY: Double = 4 * PIXEL_XY_SIZE) : TrackGenerator {
-    override fun generate(rnd: RandomGenerator): Track {
+    override fun generate(): Track {
         val x = (1 - rnd.nextDouble() * 2.0) * maxX;
         val y = (1 - rnd.nextDouble() * 2.0) * maxY;
         val phi = (1 - rnd.nextDouble() * 2.0) * Math.PI;
@@ -200,12 +245,20 @@ fun runSimulation(parameters: Map<String, String>) {
 
     println("Staring simulation with $n particles");
 
+    val generator: TrackGenerator = if (parameters.containsKey("generator")) {
+        val generatorFile = parameters.get("generator");
+        println("Using muon angle distribution from $generatorFile")
+        EmpiricalDistributionTrackGenerator(File(generatorFile))
+    } else {
+        UniformTrackGenerator();
+    }
+
     when (outputFormat) {
         outputType.table -> {
             outStream.printf("%s\t%s\t%s\t%s\t%s%n",
                     "name", "simCounts", "phi", "theta", "angleErr");
 
-            simulateN(n).values.sortedByDescending { it.count }.forEach { counter ->
+            simulateN(n, generator).values.sortedByDescending { it.count }.forEach { counter ->
                 if (counter.multiplicity == 3) {
                     outStream.printf("%s\t%d\t%.3f\t%.3f\t%.3f%n",
                             counter.id, counter.count, counter.getMeanPhi(),
@@ -214,13 +267,13 @@ fun runSimulation(parameters: Map<String, String>) {
             }
         }
         outputType.raw -> {
-            Stream.generate { -> simulateOne() }.limit(n.toLong()).forEach {
+            Stream.generate { -> simulateOne(generator) }.limit(n.toLong()).forEach {
                 printEventAsRaw(outStream, it)
             }
         }
         outputType.json -> {
             val json = Json.createArrayBuilder();
-            Stream.generate { -> eventAsJson(simulateOne()) }.parallel().limit(n.toLong())
+            Stream.generate { -> eventAsJson(simulateOne(generator)) }.parallel().limit(n.toLong())
                     .collect(Collectors.toList<JsonObject>()).forEach { it: JsonObject -> json.add(it) };
             val writer = Json.createWriterFactory(mapOf(JsonGenerator.PRETTY_PRINTING to true)).createWriter(outStream);
             writer.write(json.build())
