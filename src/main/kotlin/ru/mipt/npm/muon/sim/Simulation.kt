@@ -170,8 +170,8 @@ class EmpiricalDistributionTrackGenerator(distributionFile: File, val maxX: Doub
         val phi = Math.PI / 180.0 * (row.phi);
 
         //uniformly distributed angles inside pixels
-        val dTheta = Math.PI / 180.0 * (1.0 - angleStep * rnd.nextDouble());
-        val dPhi = Math.PI / 180.0 * (1.0 - angleStep * rnd.nextDouble());
+        val dTheta = Math.PI / 180.0 * angleStep / 2.0 * (1.0 - 2 * rnd.nextDouble());
+        val dPhi = Math.PI / 180.0 * angleStep / 2.0 * (1.0 - 2 * rnd.nextDouble());
 
 
         return makeTrack(x, y, theta + dTheta, phi + dPhi);
