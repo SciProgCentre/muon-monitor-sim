@@ -237,7 +237,7 @@ enum class outputType {
 }
 
 fun runSimulation(parameters: Map<String, String>) {
-    val n = parameters.getOrElse("n") { "100000" }.toInt();
+    val n = parameters.getOrElse("num") { "100000" }.toInt();
 
     val outputFormat = outputType.valueOf(parameters.getOrElse("format") { "table" });
 

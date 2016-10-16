@@ -37,10 +37,10 @@ fun readData(stream: InputStream): Map<String, Int> {
 
 fun evalData(parameters: Map<String, String>) {
 
-    val n = parameters.getOrElse("n") { "100000" }.toInt();
+    val n = parameters.getOrElse("num") { "100000" }.toInt();
 
-    val dataFileName = parameters.getOrElse("d") { "data.zip" };
-    val multiplicity = parameters.getOrElse("m") { "-1" }.toInt();
+    val dataFileName = parameters.getOrElse("dataFile") { "data.zip" };
+    val multiplicity = parameters.getOrElse("multiplicity") { "-1" }.toInt();
 
     val outStream = outputStream(parameters);
 
