@@ -34,10 +34,14 @@ object SphericalHarmonics {
     private fun getFactor(l: Int, m: Int): Double {
 
         var factor = 1.0
-        for (i in l - m + 1..l + m) {
-            factor *= i.toDouble()
+
+        if (m != 0) {
+            for (i in l - m + 1..l + m) {
+                factor *= i.toDouble()
+            }
         }
-        factor = (2 * l + 1).toDouble() / factor
+
+        factor = (2.0 * l + 1).toDouble() / factor
         factor /= 4.0 * Math.PI
         factor = Math.sqrt(factor)
 
@@ -185,38 +189,46 @@ object SphericalHarmonics {
     }
 
     /**
-     * Spherical coefficient
+     * Real spherical harmonics. See https://en.wikipedia.org/wiki/Spherical_harmonics#Real_form
      */
-    data class Coef(val l: Int, val m: Int, val c: Complex);
+    @JvmStatic fun sphericalReal(l: Int, m: Int, theta: Double, phi: Double): Double {
+        when {
+            m > 0 -> return Math.sqrt(2.0) * getFactor(l, m) * plgndr(l, m, Math.cos(theta)) * Math.cos(phi * m);
+            m == 0 -> return getFactor(l, m) * plgndr(l, m, Math.cos(theta));
+            m < 0 -> {
+                val absM = Math.abs(m);
+                return Math.sqrt(2.0) * getFactor(l, absM) * plgndr(l, absM, Math.cos(theta)) * Math.sin(phi * absM)
+            }
+            else -> error("unreachable statement");
+        }
+    }
 
     /**
-     * Calculate sum of spherical function with given coefficients
+     * Spherical coefficient
+     */
+    data class Coef(val l: Int, val m: Int, val c: Double);
+
+    /**
+     * Calculate sum of real spherical function with given coefficients
      */
     @JvmStatic fun sphericalValue(theta: Double, phi: Double, coefs: Array<Coef>): Double {
-        return coefs.sumByDouble { it -> spherical(it.l, it.m, theta, phi).multiply(it.c).real }
+        return coefs.sumByDouble { it -> sphericalReal(it.l, it.m, theta, phi) * it.c }
     }
 
     /**
      * Convert double array to spherical function coefficients
      */
     @JvmStatic fun arrayToCoefs(arr: DoubleArray): Array<Coef> {
-        if ((arr.size % 2) != 0) {
-            error("coefficients size must be even");
-        }
         val res = ArrayList<Coef>();
 
         var l = 0;
         var m = 0;
-        var counter = 0;
-        while (counter < arr.size) {
-            val re = arr[counter];
-            val im = arr[counter + 1];
-            res.add(Coef(l, m, Complex(re, im)))
-            counter += 2;
+        for (counter in (0..arr.size-1)) {
+            res.add(Coef(l, m, arr[counter]))
             if (m == l) {
                 l++;
-                m = 0;
-            } else{
+                m = -l;
+            } else {
                 m++;
             }
         }
@@ -249,7 +261,7 @@ object SphericalHarmonics {
      */
     @JvmStatic fun fit(points: Array<Point>, l: Number): PointValuePair {
         val dim = 2 * evenFuncsUpTo(l.toInt());
-        return fit(points,DoubleArray(dim, { i -> 0.0 }), dim);
+        return fit(points, DoubleArray(dim, { i -> 0.0 }), dim);
     }
 
     @JvmStatic fun fit(points: Array<Point>, start: DoubleArray, dim: Int): PointValuePair {
