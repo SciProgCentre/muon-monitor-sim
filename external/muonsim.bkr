@@ -61,8 +61,8 @@
                 "result": "D:\\Work\\MIPT\\Projects\\muonsim",
                 "selectedType": "Text",
                 "pluginName": "Groovy",
-                "shellId": "eed2cc2e-8909-4906-9d34-04ff4755a66f",
-                "elapsedTime": 1119,
+                "shellId": "63bfd12f-ec83-455c-8e39-e06051602dfb",
+                "elapsedTime": 1106,
                 "height": 36
             },
             "evaluatorReader": true,
@@ -86,6 +86,7 @@
                     "  process.text.eachLine {println it}",
                     "}",
                     "",
+                    "System.gc();",
                     "ClassLoader.systemClassLoader.addURL(jarFile.toURL())",
                     "println \"loaded fat jar from $jarFile\""
                 ]
@@ -103,12 +104,12 @@
                 },
                 "selectedType": "Results",
                 "pluginName": "Groovy",
-                "shellId": "eed2cc2e-8909-4906-9d34-04ff4755a66f",
-                "elapsedTime": 567,
+                "shellId": "63bfd12f-ec83-455c-8e39-e06051602dfb",
+                "elapsedTime": 571,
                 "height": 35
             },
             "evaluatorReader": true,
-            "lineCount": 13,
+            "lineCount": 14,
             "tags": "required"
         },
         {
@@ -180,14 +181,18 @@
                     "outputdata": [
                         {
                             "type": "out",
-                            "value": "thetaMax: 1.283\r\ntotalDataCounts: 117843\r\ntotalSimCounts: 3142032\r\n"
+                            "value": "thetaMax: 1.283\r\n"
+                        },
+                        {
+                            "type": "out",
+                            "value": "totalDataCounts: 117843\r\ntotalSimCounts: 3142032\r\n"
                         }
                     ]
                 },
                 "selectedType": "Results",
                 "pluginName": "Groovy",
-                "shellId": "eed2cc2e-8909-4906-9d34-04ff4755a66f",
-                "elapsedTime": 1109,
+                "shellId": "63bfd12f-ec83-455c-8e39-e06051602dfb",
+                "elapsedTime": 1264,
                 "height": 67
             },
             "evaluatorReader": true,
@@ -1366,8 +1371,8 @@
                 "state": {},
                 "selectedType": "Hidden",
                 "pluginName": "Groovy",
-                "shellId": "eed2cc2e-8909-4906-9d34-04ff4755a66f",
-                "elapsedTime": 580
+                "shellId": "63bfd12f-ec83-455c-8e39-e06051602dfb",
+                "elapsedTime": 578
             },
             "evaluatorReader": true,
             "lineCount": 1
@@ -1386,18 +1391,18 @@
                     "import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.*",
                     "import java.util.stream.Collectors;",
                     "",
-                    "int l = 10;",
+                    "int l = 7;",
                     "",
                     "def points = tracks.stream().map{ new Point(it.theta, it.phi,it.dataCount/it.simCount*generatedNum,Math.sqrt(it.dataCount)/it.simCount*generatedNum)}.toArray{i -> new Point[i]}",
                     "",
-                    "def dim = 2 * SphericalHarmonics.evenFuncsUpTo(l);",
-                    "def optimizer = new SimplexOptimizer(0.01, 0.01);",
+                    "def dim = (l+1)**2;",
+                    "def optimizer = new SimplexOptimizer(0.001, 0.001);",
                     "",
                     "def start = startPoint ?: new double[dim];",
                     "//def start = new double[dim];",
                     "def steps = new double[dim];",
                     "",
-                    "Arrays.fill(steps,100)",
+                    "Arrays.fill(steps,10)",
                     "",
                     "def function = SphericalHarmonics.chi2SphericalFunction(points);",
                     "",
@@ -1422,7 +1427,7 @@
                     "",
                     "println \"l\\tm\\tvalue\"",
                     "for(SphericalHarmonics.Coef coef in coefs){",
-                    "  println \"${coef.l}\\t${coef.m}\\t${coef.c.real} + i*${coef.c.imaginary}\"",
+                    "  println \"${coef.l}\\t${coef.m}\\t${coef.c}\"",
                     "}"
                 ]
             },
@@ -1433,27 +1438,27 @@
                     "outputdata": [
                         {
                             "type": "out",
-                            "value": "chi^2 = 111242.30915994545/12380 = 8.985646943452783\r\n\r\nspherical coefficients:\r\nl\tm\tvalue\r\n0\t0\t9630.0 + i*9557.045454545374\r\n1\t0\t9484.090909090948 + i*9411.13636363649\r\n1\t1\t9338.181818181823 + i*9265.227272727283\r\n2\t0\t9192.27272727274 + i*9119.318181818184\r\n2\t1\t9046.363636363505 + i*8973.409090909025\r\n2\t2\t8900.454545454644 + i*8827.499999999996\r\n3\t0\t8754.545454545356 + i*8681.590909091143\r\n3\t1\t8608.636363636506 + i*8535.681818181802\r\n3\t2\t8462.727272727301 + i*8389.772727272693\r\n3\t3\t8316.8181818182 + i*8243.863636363474\r\n4\t0\t8170.909090908841 + i*8097.954545454635\r\n4\t1\t8024.999999999999 + i*7952.04545454538\r\n4\t2\t7879.090909091142 + i*7806.1363636365195\r\n4\t3\t7733.181818181804 + i*7660.227272727303\r\n4\t4\t7587.272727272696 + i*7514.318181818203\r\n5\t0\t7441.36363636348 + i*7368.409090908979\r\n5\t1\t7295.454545454618 + i*7222.5\r\n"
+                            "value": "chi^2 = 113182.23704314462/12380 = 9.142345480060147\r\n\r\nspherical coefficients:\r\nl\tm\tvalue\r\n0\t0\t6630.0\r\n1\t-1\t6526.40625\r\n1\t0\t6422.8125\r\n1\t1\t6319.21875\r\n2\t-2\t6215.625\r\n2\t-1\t6112.03125\r\n2\t0\t6008.4375\r\n2\t1\t5904.84375\r\n2\t2\t5801.25\r\n3\t-3\t5697.65625\r\n3\t-2\t5594.0625\r\n3\t-1\t5490.46875\r\n3\t0\t5386.875\r\n3\t1\t5283.28125\r\n3\t2\t5179.6875\r\n3\t3\t5076.09375\r\n4\t-4\t4972.5\r\n"
                         },
                         {
                             "type": "out",
-                            "value": "5\t2\t7149.545454545389 + i*7076.5909090909845\r\n5\t3\t7003.636363636288 + i*6930.681818181796\r\n5\t4\t6857.72727272729 + i*6784.772727272714\r\n5\t5\t6711.818181818208 + i*6638.863636363593\r\n6\t0\t6565.909090909131 + i*6492.9545454544905\r\n6\t1\t6420.000000000001 + i*6347.045454545495\r\n6\t2\t6274.090909090877 + i*6201.136363636389\r\n6\t3\t6128.1818181817835 + i*6055.227272727313\r\n6\t4\t5982.272727272682 + i*5909.318181818215\r\n6\t5\t5836.363636363574 + i*5763.409090908999\r\n6\t6\t5690.4545454544805 + i*5617.500000000006\r\n7\t0\t5544.545454545508 + i*5471.590909090887\r\n7\t1\t5398.63636363632 + i*5325.681818181815\r\n7\t2\t5252.727272727322 + i*5179.7727272726825\r\n7\t3\t5106.8181818181765 + i*5033.863636363668\r\n7\t4\t4960.909090909071 + i*4887.954545454501\r\n7\t5\t4815.0 + i*4742.045454545474\r\n7\t6\t4669.09090909091 + i*4596.136363636363\r\n7\t7\t4523.181818181749 + i*4450.22727272731\r\n8\t0\t4377.2727272726825 + i*4304.318181818257\r\n8\t1\t4231.363636363651 + i*4158.4090909091\r\n"
+                            "value": "4\t-3\t4868.90625\r\n4\t-2\t4765.3125\r\n4\t-1\t4661.71875\r\n4\t0\t4558.125\r\n4\t1\t4454.53125\r\n4\t2\t4350.9375\r\n4\t3\t4247.34375\r\n4\t4\t4143.75\r\n5\t-5\t4040.15625\r\n5\t-4\t3936.5625\r\n5\t-3\t3832.96875\r\n5\t-2\t3729.375\r\n5\t-1\t3625.78125\r\n5\t0\t3522.1875\r\n5\t1\t3418.59375\r\n5\t2\t3315.0\r\n5\t3\t3211.40625\r\n5\t4\t3107.8125\r\n5\t5\t3004.21875\r\n6\t-6\t2900.625\r\n6\t-5\t2797.03125\r\n"
                         },
                         {
                             "type": "out",
-                            "value": "8\t2\t4085.4545454546246 + i*4012.4999999999995\r\n8\t3\t3939.5454545453817 + i*3866.590909090899\r\n8\t4\t3793.636363636348 + i*3720.681818181738\r\n8\t5\t3647.7272727273107 + i*3574.77272727269\r\n8\t6\t3501.818181818144 + i*3428.8636363636497\r\n8\t7\t3355.9090909091638 + i*3282.9545454545637\r\n8\t8\t3210.0000000000005 + i*3137.045454545495\r\n9\t0\t3064.0909090908917 + i*2991.1363636363626\r\n9\t1\t2918.1818181818116 + i*2845.227272727245\r\n9\t2\t2772.2727272727557 + i*2699.318181818159\r\n9\t3\t2626.3636363636565 + i*2553.4090909090883\r\n9\t4\t2480.454545454509 + i*2407.5\r\n9\t5\t2334.545454545455 + i*2261.5909090908744\r\n9\t6\t2188.6363636363462 + i*2115.6818181818257\r\n9\t7\t2042.7272727272516 + i*1969.7727272727598\r\n9\t8\t1896.818181818175 + i*1823.8636363636563\r\n9\t9\t1750.909090909072 + i*1677.9545454545482\r\n10\t0\t1605.0000000000002 + i*1532.0454545454486\r\n10\t1\t1459.0909090908917 + i*1386.136363636377\r\n10\t2\t1313.1818181818292 + i*1240.2272727272536\r\n10\t3\t1167.272727272727 + i*1094.3181818181706\r\n"
+                            "value": "6\t-4\t2693.4375\r\n6\t-3\t2589.84375\r\n6\t-2\t2486.25\r\n6\t-1\t2382.65625\r\n6\t0\t2279.0625\r\n6\t1\t2175.46875\r\n6\t2\t2071.875\r\n6\t3\t1968.28125\r\n6\t4\t1864.6875\r\n6\t5\t1761.09375\r\n6\t6\t1657.5\r\n7\t-7\t1553.90625\r\n7\t-6\t1450.3125\r\n7\t-5\t1346.71875\r\n7\t-4\t1243.125\r\n7\t-3\t1139.53125\r\n7\t-2\t1035.9375\r\n7\t-1\t932.34375\r\n7\t0\t828.75\r\n7\t1\t725.15625\r\n7\t2\t621.5625\r\n"
                         },
                         {
                             "type": "out",
-                            "value": "10\t4\t1021.3636363636562 + i*948.4090909090871\r\n10\t5\t875.454545454536 + i*802.5000000000001\r\n10\t6\t729.5454545454459 + i*656.5909090909146\r\n10\t7\t583.6363636363635 + i*510.68181818181085\r\n10\t8\t437.727272727268 + i*364.77272727272293\r\n10\t9\t291.81818181818176 + i*218.863636363634\r\n10\t10\t145.90909090909088 + i*72.95454545454544\r\n"
+                            "value": "7\t3\t517.96875\r\n7\t4\t414.375\r\n7\t5\t310.78125\r\n7\t6\t207.1875\r\n7\t7\t103.59375\r\n"
                         }
                     ]
                 },
                 "selectedType": "Results",
                 "pluginName": "Groovy",
-                "shellId": "eed2cc2e-8909-4906-9d34-04ff4755a66f",
-                "elapsedTime": 89468,
-                "height": 1139
+                "shellId": "63bfd12f-ec83-455c-8e39-e06051602dfb",
+                "elapsedTime": 38069,
+                "height": 1107
             },
             "evaluatorReader": true,
             "lineCount": 46
