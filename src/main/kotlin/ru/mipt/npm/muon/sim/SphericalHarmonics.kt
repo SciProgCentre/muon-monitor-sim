@@ -1,6 +1,7 @@
 package ru.mipt.npm.muon.sim
 
 import org.apache.commons.math3.analysis.MultivariateFunction
+import org.apache.commons.math3.analysis.MultivariateVectorFunction
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure
 import org.apache.commons.math3.analysis.differentiation.UnivariateDifferentiableFunction
 import org.apache.commons.math3.analysis.polynomials.PolynomialFunction
@@ -223,7 +224,7 @@ object SphericalHarmonics {
 
         var l = 0;
         var m = 0;
-        for (counter in (0..arr.size-1)) {
+        for (counter in (0..arr.size - 1)) {
             res.add(Coef(l, m, arr[counter]))
             if (m == l) {
                 l++;
@@ -247,11 +248,28 @@ object SphericalHarmonics {
         }
     }
 
+    @JvmStatic fun chi2DerivValue(k: Int, points: Array<Point>, coefs: Array<Coef>): Double {
+        return -points.sumByDouble {
+            2.0 * (it.value - sphericalValue(it.theta, it.phi, coefs)) / Math.pow(it.err, 2.0) * sphericalReal(coefs[k].l, coefs[k].m, it.theta, it.phi);
+        }
+    }
+
+    @JvmStatic fun chi2SecondDerivValue(k: Int, n: Int, points: Array<Point>, coefs: Array<Coef>): Double {
+        return -points.sumByDouble {
+            2.0 / Math.pow(it.err, 2.0) * sphericalReal(coefs[k].l, coefs[k].m, it.theta, it.phi)*sphericalReal(coefs[n].l, coefs[n].m, it.theta, it.phi);
+        }
+    }
+
+
     /**
      * Calculate chi2 for given data set
      */
     @JvmStatic fun chi2SphericalFunction(points: Array<Point>): MultivariateFunction {
         return MultivariateFunction { pars -> chi2SphericalValue(points, arrayToCoefs(pars)) }
+    }
+
+    @JvmStatic fun chi2GradientFunction(points: Array<Point>): MultivariateVectorFunction {
+        return MultivariateVectorFunction { pars -> DoubleArray(pars.size, { i -> chi2DerivValue(i, points, arrayToCoefs(pars)) }) }
     }
 
     /**
