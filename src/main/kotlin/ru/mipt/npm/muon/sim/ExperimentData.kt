@@ -40,6 +40,7 @@ fun evalData(parameters: Map<String, String>) {
     val n = parameters.getOrElse("num") { "100000" }.toInt();
 
     val dataFileName = parameters.getOrElse("dataFile") { "data.zip" };
+    println("Using $dataFileName for source data");
     val multiplicity = parameters.getOrElse("multiplicity") { "-1" }.toInt();
 
     val outStream = outputStream(parameters);
