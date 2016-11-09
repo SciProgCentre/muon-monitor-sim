@@ -117,7 +117,7 @@ task eff(dependsOn: 'classes', type: JavaExec) {
 
 task evalDataFiltered(dependsOn: 'classes', type: JavaExec) {
     main = mainClassName
-    args = ["evalData", "-n", "10000000", "-f", "evalFiltered.dat", "--multiplicity=-1", "-d D:\\Work\\MIPT\\Projects\\muonsim-data\\Event_Counters multipl3 RMM103-RMM132"]
+    args = ["evalData", "-n", "10000000", "-f", "evalFiltered.dat", "--multiplicity=-1", "-d=data_filtered.zip"]
     group = "muonsim"
     classpath = sourceSets.main.runtimeClasspath
 }
