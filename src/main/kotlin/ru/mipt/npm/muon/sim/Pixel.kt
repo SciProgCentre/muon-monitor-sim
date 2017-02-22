@@ -48,6 +48,18 @@ class Pixel(val name: String, val center: Vector3D, var efficiency: Double = 1.0
     }
 
     /**
+     * The layer number from up to bottom
+     */
+    fun getLayerNumber(): Int{
+        return when(this.center.z){
+            UPPER_LAYER_Z -> 1;
+            CENTRAL_LAYER_Z -> 2;
+            LOWER_LAYER_Z -> 3;
+            else -> throw RuntimeException("Unknown layer");
+        }
+    }
+
+    /**
      * Check if track crosses the pixel
      */
     fun isHit(track: Track): Boolean {

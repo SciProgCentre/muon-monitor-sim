@@ -32,6 +32,7 @@ val layers = arrayOf(
         Layer("bottom+", LOWER_LAYER_Z + PIXEL_Z_SIZE / 2),
         Layer("bottom-", LOWER_LAYER_Z - PIXEL_Z_SIZE / 2)
 );
+
 val pixels = buildPixels()
 
 fun findLayer(z: Double): Layer {
