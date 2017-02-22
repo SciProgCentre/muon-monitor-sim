@@ -2,6 +2,7 @@ package ru.mipt.npm.muon.sim
 
 import javafx.application.Application
 import org.apache.commons.cli.*
+import ru.mipt.npm.muon.sim.app.MonitorApp
 import java.io.File
 import java.io.PrintStream
 import java.util.*

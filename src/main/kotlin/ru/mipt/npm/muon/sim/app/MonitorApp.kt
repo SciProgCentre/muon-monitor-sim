@@ -1,4 +1,4 @@
-package ru.mipt.npm.muon.sim
+package ru.mipt.npm.muon.sim.app
 
 import tornadofx.*
 
