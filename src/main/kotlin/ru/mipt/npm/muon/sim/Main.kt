@@ -1,5 +1,6 @@
 package ru.mipt.npm.muon.sim
 
+import javafx.application.Application
 import org.apache.commons.cli.*
 import java.io.File
 import java.io.PrintStream
@@ -49,7 +50,7 @@ fun main(args: Array<String>) {
 
     val parameters = getParameters(cli);
     when (command) {
-        "monitorFX" -> MonitorFX.launch(MonitorFX::class.java, *truncateArgs);
+        "monitorFX" -> Application.launch(MonitorApp::class.java, *truncateArgs);
         "simulate" -> runSimulation(parameters);
         "evalData" -> evalData(parameters);
         "efficiency" -> generateEfficiency(parameters);

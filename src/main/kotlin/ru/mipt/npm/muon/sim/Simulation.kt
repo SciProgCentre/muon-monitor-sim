@@ -33,7 +33,7 @@ fun simulateN(n: Int, trackGenerator: TrackGenerator = UniformTrackGenerator()):
     val map = ConcurrentHashMap<String, Counter>();
     //generating stream in parallel
     Stream.generate { -> simulateOne(trackGenerator) }.limit(n.toLong()).parallel().forEach {
-        val id = it.getIdentity();
+        val id = it.toString();
         if (!map.containsKey(id)) {
             map.put(id, Counter(id, it.hits.size))
         }

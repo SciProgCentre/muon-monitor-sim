@@ -15,7 +15,7 @@ data class Event(val track: Track, val hits: Collection<Pixel>) {
     /**
      * The unique identity for given set of hits. One identity could correspond to different tracks
      */
-    fun getIdentity(): String {
+    override fun toString(): String {
         return hits.sortedBy { it -> it.name }
                 .joinToString(separator = ", ", prefix = "[", postfix = "]", transform = { pixel -> pixel.name });
     }
