@@ -30,7 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package ru.mipt.npm.muon.sim
+package ru.mipt.npm.muon.sim.app
 
 import javafx.scene.Group
 import javafx.scene.transform.Rotate
@@ -73,12 +73,12 @@ class Xform : Group {
     constructor(rotateOrder: RotateOrder) : super() {
         // choose the order of rotations based on the rotateOrder
         when (rotateOrder) {
-            Xform.RotateOrder.XYZ -> transforms.addAll(t, p, rz, ry, rx, s, ip)
-            Xform.RotateOrder.XZY -> transforms.addAll(t, p, ry, rz, rx, s, ip)
-            Xform.RotateOrder.YXZ -> transforms.addAll(t, p, rz, rx, ry, s, ip)
-            Xform.RotateOrder.YZX -> transforms.addAll(t, p, rx, rz, ry, s, ip)  // For Camera
-            Xform.RotateOrder.ZXY -> transforms.addAll(t, p, ry, rx, rz, s, ip)
-            Xform.RotateOrder.ZYX -> transforms.addAll(t, p, rx, ry, rz, s, ip)
+            RotateOrder.XYZ -> transforms.addAll(t, p, rz, ry, rx, s, ip)
+            RotateOrder.XZY -> transforms.addAll(t, p, ry, rz, rx, s, ip)
+            RotateOrder.YXZ -> transforms.addAll(t, p, rz, rx, ry, s, ip)
+            RotateOrder.YZX -> transforms.addAll(t, p, rx, rz, ry, s, ip)  // For Camera
+            RotateOrder.ZXY -> transforms.addAll(t, p, ry, rx, rz, s, ip)
+            RotateOrder.ZYX -> transforms.addAll(t, p, rx, ry, rz, s, ip)
         }
     }
 

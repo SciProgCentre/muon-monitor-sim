@@ -1,4 +1,4 @@
-package ru.mipt.npm.muon.sim
+package ru.mipt.npm.muon.sim.app
 
 import javafx.collections.FXCollections
 import javafx.embed.swing.SwingFXUtils
@@ -15,6 +15,7 @@ import javafx.scene.paint.PhongMaterial
 import javafx.scene.shape.Box
 import javafx.scene.text.Text
 import javafx.stage.FileChooser
+import ru.mipt.npm.muon.sim.*
 import tornadofx.*
 import java.io.IOException
 import java.util.*
