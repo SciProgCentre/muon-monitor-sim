@@ -36,22 +36,22 @@ class Pixel(val name: String, val center: Vector3D, var efficiency: Double = 1.0
     /**
      * Return number of detector pixel like SCxx-12
      */
-    fun getDetectorNumber(): Int{
-        return this.name.substring(2,4).toInt();
+    fun getDetectorNumber(): Int {
+        return this.name.substring(2, 4).toInt();
     }
 
     /**
      * Return number of pixel in detector like SC79-xx
      */
-    fun getPixelNumber(): Int{
+    fun getPixelNumber(): Int {
         return this.name.substring(5).toInt();
     }
 
     /**
      * The layer number from up to bottom
      */
-    fun getLayerNumber(): Int{
-        return when(this.center.z){
+    fun getLayerNumber(): Int {
+        return when (this.center.z) {
             UPPER_LAYER_Z -> 1;
             CENTRAL_LAYER_Z -> 2;
             LOWER_LAYER_Z -> 3;
@@ -69,36 +69,35 @@ class Pixel(val name: String, val center: Vector3D, var efficiency: Double = 1.0
         val upperHit = containsPoint(upperIntersection);
         val bottomHit = containsPoint(bottomIntersection);
 
-//        return (upperHit||bottomHit||containsPoint(centralLayer.intersect(track))) && eff();
-        if (!bottomHit && !upperHit) {
-            return false;
-        } else if (upperHit && bottomHit) {
-            return eff();
+        if (DISABLE_TRACK_LENGTH) {
+            return (upperHit || bottomHit || containsPoint(centralLayer.intersect(track))) && eff();
         } else {
-            val verticalHitPoint = when (upperHit) {
-                true -> upperIntersection
-                false -> bottomIntersection
-            }
-            val horizontalHitPoint = getHorizontalHitPoint(track);
-            if (horizontalHitPoint == null) {
-                //If horizontal intersection could not be found, it is near the rib and therefore length is always sufficient
-                return true;
+            if (!bottomHit && !upperHit) {
+                return false;
+            } else if (upperHit && bottomHit) {
+                return eff();
             } else {
-                val length = verticalHitPoint.distance(horizontalHitPoint);
-                return (length >= MINIMAL_TRACK_LENGTH) && eff();
+                val verticalHitPoint = if (upperHit) {
+                    upperIntersection
+                } else {
+                    bottomIntersection
+                }
+                val horizontalHitPoint = getHorizontalHitPoint(track);
+                if (horizontalHitPoint == null) {
+                    //If horizontal intersection could not be found, it is near the rib and therefore length is always sufficient
+                    return true;
+                } else {
+                    val length = verticalHitPoint.distance(horizontalHitPoint);
+                    return (length >= MINIMAL_TRACK_LENGTH) && eff();
+                }
             }
         }
     }
 
     fun getHorizontalHitPoint(track: Track): Vector3D? {
-        for (p in sideLayers) {
-            val intersection = p.intersection(track.line);
-            //FIXME there is a problem with geometric tolerances here
-            if (intersection != null && containsPoint(intersection, 100 * GEOMETRY_TOLERANCE)) {
-                return intersection;
-            }
-        }
-        return null;
+        return sideLayers
+                .map { it.intersection(track.line) }//FIXME there is a problem with geometric tolerances here
+                .firstOrNull { it != null && containsPoint(it, 100 * GEOMETRY_TOLERANCE) };
     }
 
     private fun eff(): Boolean {
