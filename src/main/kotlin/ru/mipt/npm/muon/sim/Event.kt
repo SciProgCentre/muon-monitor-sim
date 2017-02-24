@@ -17,7 +17,7 @@ data class Event(val track: Track, val hits: Collection<Pixel>) {
      */
     override fun toString(): String {
         return hits.sortedBy { it -> it.name }
-                .joinToString(separator = ", ", prefix = "[", postfix = "]", transform = { pixel -> pixel.name });
+                .joinToString(separator = ", ", prefix = "[", postfix = "]", transform = { it.name });
     }
 
 }
@@ -27,13 +27,9 @@ fun buildEventByTrack(track: Track, hitResolver: (Track) -> Collection<Pixel> = 
 }
 
 val defaultHitResolver: (Track) -> Collection<Pixel> = { track: Track ->
-    val hits = HashSet<Pixel>();
-    for (p in pixels.values) {
-        if (p.isHit(track)) {
-            hits.add(p);
-        }
-    }
-    hits
+    pixels.values
+            .filter { it.isHit(track) }
+            .toSet();
 }
 
 /**

@@ -19,6 +19,8 @@ val LOWER_LAYER_Z = -180.0;
 // minimal track length in detector
 val MINIMAL_TRACK_LENGTH = 10.0;
 
+val DISABLE_TRACK_LENGTH = false;
+
 var rnd: RandomGenerator = JDKRandomGenerator();
 
 val layers = arrayOf(

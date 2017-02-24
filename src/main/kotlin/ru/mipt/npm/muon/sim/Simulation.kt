@@ -210,7 +210,6 @@ class Cos2TrackGenerator(val power: Double = 2.0, val maxX: Double = 4 * PIXEL_X
     }
 }
 
-@SuppressWarnings("unchecked")
 fun directionMap(): Map<String, Vector3D> {
     val mapFile = File("direction.map");
     if (mapFile.exists()) {
@@ -243,6 +242,8 @@ fun runSimulation(parameters: Map<String, String>) {
 
     val outStream = outputStream(parameters);
 
+    val multiplicity = parameters.getOrElse("multiplicity") { "-1" }.toInt();
+
     println("Staring simulation with $n particles");
 
     val generator: TrackGenerator = if (parameters.containsKey("generator")) {
@@ -259,7 +260,7 @@ fun runSimulation(parameters: Map<String, String>) {
                     "name", "simCounts", "phi", "theta", "angleErr");
 
             simulateN(n, generator).values.sortedByDescending { it.count }.forEach { counter ->
-                if (counter.multiplicity == 3) {
+                if (multiplicity < 0 || counter.multiplicity == multiplicity) {
                     outStream.printf("%s\t%d\t%.3f\t%.3f\t%.3f%n",
                             counter.id, counter.count, counter.getMeanPhi(),
                             Math.PI / 2 - counter.getMeanTheta(), counter.angleErr());
