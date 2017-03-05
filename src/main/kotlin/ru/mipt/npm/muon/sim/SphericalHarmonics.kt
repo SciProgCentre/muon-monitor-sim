@@ -61,7 +61,7 @@ object SphericalHarmonics {
      * @return
      */
     @JvmStatic fun associatedLegendre(l: Int, m: Int): UnivariateDifferentiableFunction {
-        return legendreCache.computeIfAbsent(Pair(l, m)) { pair ->
+        return legendreCache.computeIfAbsent(Pair(l, m)) {
             var legendre = PolynomialsUtils.createLegendrePolynomial(l)
             for (i in 0..m - 1) {
                 legendre = legendre.polynomialDerivative()
@@ -279,7 +279,7 @@ object SphericalHarmonics {
      */
     @JvmStatic fun fit(points: Array<Point>, l: Number): PointValuePair {
         val dim = 2 * evenFuncsUpTo(l.toInt());
-        return fit(points, DoubleArray(dim, { i -> 0.0 }), dim);
+        return fit(points, DoubleArray(dim, { 0.0 }), dim);
     }
 
     @JvmStatic fun fit(points: Array<Point>, start: DoubleArray, dim: Int): PointValuePair {
@@ -287,7 +287,7 @@ object SphericalHarmonics {
         return optimizer.optimize(
                 ObjectiveFunction(chi2SphericalFunction(points)),
                 GoalType.MINIMIZE,
-                NelderMeadSimplex(DoubleArray(dim, { i -> 100.0 })),
+                NelderMeadSimplex(DoubleArray(dim, { 100.0 })),
                 InitialGuess(start),
                 MaxEval(1e7.toInt()),
                 MaxIter(1e5.toInt())

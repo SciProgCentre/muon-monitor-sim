@@ -48,7 +48,7 @@ fun simulateN(n: Int, trackGenerator: TrackGenerator = UniformTrackGenerator()):
  * @param multiplicity : number of pixels in set
  */
 class Counter(val id: String, val multiplicity: Int) {
-    var count: Int = 0;
+    var count: Int = 0
         private set
     private var sum: Vector3D = Vector3D(0.0, 0.0, 0.0);
 
@@ -215,10 +215,7 @@ fun directionMap(): Map<String, Vector3D> {
     if (mapFile.exists()) {
         try {
             val ois = ObjectInputStream(mapFile.inputStream());
-            val res = ois.readObject() as? Map<String, Vector3D>;
-            if (res != null) {
-                return res;
-            }
+            return ois.readObject() as Map<String, Vector3D>;
         } catch (ex: Exception) {
             println("Failed to load direction map. Recalculating");
         }
@@ -247,7 +244,7 @@ fun runSimulation(parameters: Map<String, String>) {
     println("Staring simulation with $n particles");
 
     val generator: TrackGenerator = if (parameters.containsKey("generator")) {
-        val generatorFile = parameters.get("generator");
+        val generatorFile = parameters["generator"];
         println("Using muon angle distribution from $generatorFile")
         EmpiricalDistributionTrackGenerator(File(generatorFile))
     } else {
