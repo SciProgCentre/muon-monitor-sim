@@ -39,7 +39,7 @@ fun printEventAsRaw(out: PrintStream, event: Event) {
     val hitMap = HashMap<Int, ArrayList<Int>>();
     for (pixel in event.hits) {
         val detector = pixel.getDetectorNumber();
-        hitMap.computeIfAbsent(detector) { num -> ArrayList<Int>() }.add(pixel.getPixelNumber());
+        hitMap.computeIfAbsent(detector) { ArrayList<Int>() }.add(pixel.getPixelNumber());
     }
     out.println("0 -1 -1 -1 -1 xxxxxxxxxxxxxxxx") // header raw
     for (entry in hitMap) {

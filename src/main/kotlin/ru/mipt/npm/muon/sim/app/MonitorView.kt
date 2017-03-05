@@ -255,6 +255,7 @@ class MonitorView : View() {
                 KeyCode.DIGIT1 -> pixelMap.filterKeys { it.getLayerNumber() == 1 }.values.forEach { toggleTransparency(it) }
                 KeyCode.DIGIT2 -> pixelMap.filterKeys { it.getLayerNumber() == 2 }.values.forEach { toggleTransparency(it) }
                 KeyCode.DIGIT3 -> pixelMap.filterKeys { it.getLayerNumber() == 3 }.values.forEach { toggleTransparency(it) }
+                else ->{}//do nothing
             }
         }
     }

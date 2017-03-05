@@ -2,8 +2,7 @@ group 'ru.mipt.npm'
 version '1.0'
 
 buildscript {
-    ext.kotlin_version = '1.0.5'
-    ext.dokka_version = '0.9.9'
+    ext.kotlin_version = '1.1.0'
 
     repositories {
         jcenter()
@@ -13,7 +12,7 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
-//        classpath "org.jetbrains.dokka:dokka-gradle-plugin:${dokka_version}"
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.9.13"
     }
 }
 
@@ -26,8 +25,6 @@ apply plugin: 'com.github.johnrengelman.shadow'
 
 mainClassName = "ru.mipt.npm.muon.sim.MainKt"
 
-sourceCompatibility = 1.8
-
 repositories {
     mavenCentral()
 }
@@ -37,6 +34,12 @@ repositories {
 //    outputDirectory = "$buildDir/docs/kotlin"
 //    sourceDirs = files('src/main/kotlin')
 //}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"

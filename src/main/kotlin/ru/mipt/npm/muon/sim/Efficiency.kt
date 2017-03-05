@@ -6,10 +6,10 @@ package ru.mipt.npm.muon.sim
 
 
 fun simulateSingleDirection(theta: Double, phi: Double, numCalls: Int = 10000,
-                            predicate: (Counter) -> Boolean = { counter -> true }): Double {
+                            predicate: (Counter) -> Boolean = { true }): Double {
     val sum = simulateN(numCalls, FixedAngleGenerator(phi, theta)).values
             .filter(predicate) // filter only specific events
-            .sumBy { counter -> counter.count }
+            .sumBy(Counter::count)
     return sum.toDouble() / numCalls; // calculate efficiency
 }
 
