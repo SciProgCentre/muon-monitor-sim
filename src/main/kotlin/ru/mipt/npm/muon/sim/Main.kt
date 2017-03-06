@@ -28,7 +28,7 @@ fun main(args: Array<String>) {
         addOption("d", "dataFile", true, "Input experiment data file")
         addOption("g", "generator", true, "File with binned distribution for generator in format of \"phi theta prob\". If not present, then the uniform distribution is used.")
         addOption("m", "multiplicity", true, "Filter output with given pixel multiplicity. By default uses -1 which menas no filtering is applyed")
-
+        addOption(null, "secondIteration", false, " Perform a second iteration afrer first one")
     };
 
 
