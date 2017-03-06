@@ -139,6 +139,13 @@ task generateMapWithData(dependsOn: 'classes', type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 }
 
+task generateMapWithSecondIteration(dependsOn: 'classes', type: JavaExec) {
+    main = mainClassName
+    args = ["map", "-n=1000000", "-f", "mapWithData_second.dat", "-d=data_filtered.zip","--secondIteration"]
+    group = "muonsim"
+    classpath = sourceSets.main.runtimeClasspath
+}
+
 task wrapper(type: Wrapper) {
     gradleVersion = '3.4'
 }

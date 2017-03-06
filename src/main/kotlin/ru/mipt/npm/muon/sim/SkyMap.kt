@@ -12,6 +12,9 @@ import java.util.zip.ZipFile
  * Created by darksnake on 05-Mar-17.
  */
 
+/**
+ * Both theta and phi in degrees. Theta is zenith angle
+ */
 data class SkyMapEntry(val theta: Double, val phi: Double, val value: Double,
                        val thetaSize: Double = Math.PI / 180.0,
                        val phiSize: Double = Math.PI / 180.0);
@@ -62,7 +65,7 @@ class EmpiricalDistributionTrackGenerator(val rows: List<SkyMapEntry>, val maxX:
 }
 
 fun generateMap(eventNumber: Int = 1000000, trackGenerator: TrackGenerator = UniformTrackGenerator(), experimentData: Map<String, Int>? = null): List<SkyMapEntry> {
-    fun convert(d: Double): Double = Math.floor(d*180.0/Math.PI) + 0.5;
+    fun convert(d: Double): Double = Math.floor(d * 180.0 / Math.PI) + 0.5;
 
     val map = ConcurrentHashMap<Pair<Double, Double>, AtomicInteger>();
 
@@ -70,15 +73,17 @@ fun generateMap(eventNumber: Int = 1000000, trackGenerator: TrackGenerator = Uni
     simResult.forEach {
         //weight for each event. If data map exists weight is the number of data hits. Otherwise, weight equals 1
         val factor = experimentData?.getOrElse(it.key) { 0 } ?: 1
-        it.value.events.forEach {
-            val coords = Pair(convert(it.track.getTheta()), convert(it.track.getPhi()));
-            if (!map.containsKey(coords)) {
-                map.put(coords, AtomicInteger(0))
+        if (factor > 0) {
+            it.value.events.forEach {
+                val coords = Pair(convert(it.track.getTheta()), convert(it.track.getPhi()));
+                if (!map.containsKey(coords)) {
+                    map.put(coords, AtomicInteger(0))
+                }
+                map[coords]?.addAndGet(factor);
             }
-            map[coords]?.addAndGet(factor);
         }
     }
-    return map.map { entry -> SkyMapEntry(entry.key.first, entry.key.second, entry.value.toDouble()) }
+    return map.map { entry -> SkyMapEntry(90 - entry.key.first, entry.key.second, entry.value.toDouble()) }
 }
 
 fun generateMap(parameters: Map<String, String>) {
@@ -101,10 +106,22 @@ fun generateMap(parameters: Map<String, String>) {
         null
     }
 
+    var map = generateMap(eventNumber = n, experimentData = data)
+
     outStream.println("# Differential flux using $n simulated muons")
-    outStream.println("# Uniform initial distribution")
+
+    if (parameters.containsKey("secondIteration")) {
+        println("Starting second iteration")
+        outStream.println("# Empirical initial distribution")
+        val generator = EmpiricalDistributionTrackGenerator(map)
+        map = generateMap(eventNumber = n, trackGenerator = generator, experimentData = data);
+    } else {
+        outStream.println("# Uniform initial distribution")
+    }
+
+
     outStream.println("# theta\tphi\tprobability")
-    generateMap(eventNumber = n, experimentData = data).forEach {
+    map.forEach {
         outStream.println("${it.theta}\t${it.phi}\t${it.value / n}")
     }
 }
