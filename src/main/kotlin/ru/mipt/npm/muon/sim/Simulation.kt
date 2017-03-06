@@ -1,6 +1,5 @@
 package ru.mipt.npm.muon.sim
 
-import org.apache.commons.math3.distribution.EnumeratedRealDistribution
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D
 import java.io.File
 import java.io.ObjectInputStream
@@ -29,13 +28,13 @@ private fun eventToString(event: Event): String {
 /**
  * Simulate n events and count them by identities
  */
-fun simulateN(n: Int, trackGenerator: TrackGenerator = UniformTrackGenerator()): Map<String, Counter> {
+fun simulateN(n: Int, trackGenerator: TrackGenerator = UniformTrackGenerator(), storeEvents: Boolean = false): Map<String, Counter> {
     val map = ConcurrentHashMap<String, Counter>();
     //generating stream in parallel
     Stream.generate { -> simulateOne(trackGenerator) }.limit(n.toLong()).parallel().forEach {
         val id = it.toString();
         if (!map.containsKey(id)) {
-            map.put(id, Counter(id, it.hits.size))
+            map.put(id, Counter(id, it.hits.size, storeEvents))
         }
         map[id]?.putEvent(it);
     }
@@ -47,18 +46,25 @@ fun simulateN(n: Int, trackGenerator: TrackGenerator = UniformTrackGenerator()):
  * @param id : set id
  * @param multiplicity : number of pixels in set
  */
-class Counter(val id: String, val multiplicity: Int) {
+class Counter(val id: String, val multiplicity: Int, val storeEvents: Boolean = false) {
     var count: Int = 0
         private set
     private var sum: Vector3D = Vector3D(0.0, 0.0, 0.0);
+
+    val events = ArrayList<Event>();
 
 
     /**
      * Using center of mass for averaging
      */
     fun putEvent(event: Event) {
-        count++;
-        sum = sum.add(event.track.getDirection())
+        synchronized(this) {
+            count++;
+            sum = sum.add(event.track.getDirection())
+            if (storeEvents) {
+                events.add(event)
+            }
+        }
     }
 
     fun average(): Vector3D {
@@ -134,50 +140,6 @@ class UniformTrackGenerator(val maxX: Double = 4 * PIXEL_XY_SIZE, val maxY: Doub
     }
 }
 
-/**
- * Generating empirical distribution from a given file
- * @param angleStep pixel size in degrees
- */
-class EmpiricalDistributionTrackGenerator(distributionFile: File, val maxX: Double = 4 * PIXEL_XY_SIZE, val maxY: Double = 4 * PIXEL_XY_SIZE, val angleStep: Double = 1.0) : TrackGenerator {
-
-    private data class Row(val phi: Double, val theta: Double, val prob: Double);
-
-    private val rows = ArrayList<Row>();
-    private val distribution: EnumeratedRealDistribution;
-
-    //reading data file
-    init {
-        distributionFile.forEachLine {
-            if (!it.startsWith("#")) {
-                val split = it.split("\\s+".toPattern());
-                rows.add(Row(split[0].toDouble(), split[1].toDouble(), split[2].toDouble()));
-            }
-        }
-        val singletons = (0..rows.size - 1).map(Int::toDouble).toDoubleArray();
-        val probs = rows.map { it.prob }.toDoubleArray();
-
-        distribution = EnumeratedRealDistribution(singletons, probs);
-    }
-
-    override fun generate(): Track {
-        //random x and y
-        val x = (1 - rnd.nextDouble() * 2.0) * maxX;
-        val y = (1 - rnd.nextDouble() * 2.0) * maxY;
-
-        //get random row
-        val row = rows[distribution.sample().toInt()];
-        val theta = Math.PI / 180.0 * (90 - row.theta);
-        val phi = Math.PI / 180.0 * (row.phi);
-
-        //uniformly distributed angles inside pixels
-        val dTheta = Math.PI / 180.0 * angleStep / 2.0 * (1.0 - 2 * rnd.nextDouble());
-        val dPhi = Math.PI / 180.0 * angleStep / 2.0 * (1.0 - 2 * rnd.nextDouble());
-
-
-        return makeTrack(x, y, theta + dTheta, phi + dPhi);
-    }
-}
-
 class FixedAngleGenerator(val phi: Double, val theta: Double,
                           val maxX: Double = 4 * PIXEL_XY_SIZE,
                           val maxY: Double = 4 * PIXEL_XY_SIZE) : TrackGenerator {
@@ -246,7 +208,8 @@ fun runSimulation(parameters: Map<String, String>) {
     val generator: TrackGenerator = if (parameters.containsKey("generator")) {
         val generatorFile = parameters["generator"];
         println("Using muon angle distribution from $generatorFile")
-        EmpiricalDistributionTrackGenerator(File(generatorFile))
+
+        EmpiricalDistributionTrackGenerator(loadMap(File(generatorFile)))
     } else {
         UniformTrackGenerator();
     }

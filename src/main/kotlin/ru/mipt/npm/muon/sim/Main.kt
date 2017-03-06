@@ -35,7 +35,7 @@ fun main(args: Array<String>) {
     if (args.isEmpty()) {
         HelpFormatter().printHelp(
                 "muonsim <command> [options]",
-                "Available commands are: [monitorFX, simulate, evalData, efficiency]",
+                "Available commands are: [monitorFX, simulate, evalData, efficiency, map]",
                 options,
                 ""
         )
@@ -55,6 +55,7 @@ fun main(args: Array<String>) {
         "simulate" -> runSimulation(parameters);
         "evalData" -> evalData(parameters);
         "efficiency" -> generateEfficiency(parameters);
+        "map" -> generateMap(parameters)
     }
 
 }
