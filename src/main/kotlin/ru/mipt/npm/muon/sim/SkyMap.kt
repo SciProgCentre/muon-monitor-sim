@@ -70,19 +70,33 @@ fun generateMap(eventNumber: Int = 1000000, trackGenerator: TrackGenerator = Uni
     val map = ConcurrentHashMap<Pair<Double, Double>, AtomicInteger>();
 
     val simResult = simulateN(eventNumber, trackGenerator, true);
+
+    val totalFactor = AtomicInteger(0)
+    val sum = AtomicInteger(0)
+    val sim = AtomicInteger(0)
+
     simResult.forEach {
         //weight for each event. If data map exists weight is the number of data hits. Otherwise, weight equals 1
         val factor = experimentData?.getOrElse(it.key) { 0 } ?: 1
         if (factor > 0) {
+            totalFactor.addAndGet(factor)
             it.value.events.forEach {
+                sim.incrementAndGet();
                 val coords = Pair(convert(it.track.getTheta()), convert(it.track.getPhi()));
                 if (!map.containsKey(coords)) {
                     map.put(coords, AtomicInteger(0))
                 }
                 map[coords]?.addAndGet(factor);
+                sum.addAndGet(factor)
             }
         }
     }
+
+    println("The total number of simulated particles: $eventNumber")
+    println("The total number of used simulated particles: $sim")
+    println("The total weighting factor: $totalFactor")
+    println("The integral: $sum")
+
     return map.map { entry -> SkyMapEntry(90 - entry.key.first, entry.key.second, entry.value.toDouble()) }
 }
 
@@ -122,6 +136,6 @@ fun generateMap(parameters: Map<String, String>) {
 
     outStream.println("# theta\tphi\tprobability")
     map.forEach {
-        outStream.println("${it.theta}\t${it.phi}\t${it.value / n}")
+        outStream.println("${it.theta}\t${it.phi}\t${it.value}")
     }
 }
