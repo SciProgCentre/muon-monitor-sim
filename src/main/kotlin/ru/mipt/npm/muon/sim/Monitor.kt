@@ -10,7 +10,8 @@ import java.util.*
  */
 
 val GEOMETRY_TOLERANCE = 0.01;
-val PIXEL_XY_SIZE = 125.0;
+val PIXEL_XY_SIZE = 122.0;
+val PIXEL_XY_SPACING = 125.0;
 val PIXEL_Z_SIZE = 30.0;
 val CENTRAL_LAYER_Z = 0.0;
 val UPPER_LAYER_Z = 166.0;
@@ -103,71 +104,71 @@ fun buildDetector(detectorName: String, detectorPos: Vector3D): Map<String, Pixe
         var y: Double;
         when (index) {
             7 -> {
-                x = 1.5 * PIXEL_XY_SIZE;
-                y = 1.5 * PIXEL_XY_SIZE;
+                x = 1.5 * PIXEL_XY_SPACING;
+                y = 1.5 * PIXEL_XY_SPACING;
             }
             4 -> {
-                x = 0.5 * PIXEL_XY_SIZE;
-                y = 1.5 * PIXEL_XY_SIZE;
+                x = 0.5 * PIXEL_XY_SPACING;
+                y = 1.5 * PIXEL_XY_SPACING;
             }
             6 -> {
-                x = 1.5 * PIXEL_XY_SIZE;
-                y = 0.5 * PIXEL_XY_SIZE;
+                x = 1.5 * PIXEL_XY_SPACING;
+                y = 0.5 * PIXEL_XY_SPACING;
             }
             5 -> {
-                x = 0.5 * PIXEL_XY_SIZE;
-                y = 0.5 * PIXEL_XY_SIZE;
+                x = 0.5 * PIXEL_XY_SPACING;
+                y = 0.5 * PIXEL_XY_SPACING;
             }
 
             3 -> {
-                x = -1.5 * PIXEL_XY_SIZE;
-                y = 1.5 * PIXEL_XY_SIZE;
+                x = -1.5 * PIXEL_XY_SPACING;
+                y = 1.5 * PIXEL_XY_SPACING;
             }
             0 -> {
-                x = -0.5 * PIXEL_XY_SIZE;
-                y = 1.5 * PIXEL_XY_SIZE;
+                x = -0.5 * PIXEL_XY_SPACING;
+                y = 1.5 * PIXEL_XY_SPACING;
             }
             2 -> {
-                x = -1.5 * PIXEL_XY_SIZE;
-                y = 0.5 * PIXEL_XY_SIZE;
+                x = -1.5 * PIXEL_XY_SPACING;
+                y = 0.5 * PIXEL_XY_SPACING;
             }
             1 -> {
-                x = -0.5 * PIXEL_XY_SIZE;
-                y = 0.5 * PIXEL_XY_SIZE;
+                x = -0.5 * PIXEL_XY_SPACING;
+                y = 0.5 * PIXEL_XY_SPACING;
             }
 
             11 -> {
-                x = -1.5 * PIXEL_XY_SIZE;
-                y = -1.5 * PIXEL_XY_SIZE;
+                x = -1.5 * PIXEL_XY_SPACING;
+                y = -1.5 * PIXEL_XY_SPACING;
             }
             8 -> {
-                x = -0.5 * PIXEL_XY_SIZE;
-                y = -1.5 * PIXEL_XY_SIZE;
+                x = -0.5 * PIXEL_XY_SPACING;
+                y = -1.5 * PIXEL_XY_SPACING;
             }
             10 -> {
-                x = -1.5 * PIXEL_XY_SIZE;
-                y = -0.5 * PIXEL_XY_SIZE;
+                x = -1.5 * PIXEL_XY_SPACING;
+                y = -0.5 * PIXEL_XY_SPACING;
             }
             9 -> {
-                x = -0.5 * PIXEL_XY_SIZE;
-                y = -0.5 * PIXEL_XY_SIZE;
+                x = -0.5 * PIXEL_XY_SPACING;
+                y = -0.5 * PIXEL_XY_SPACING;
             }
 
             15 -> {
-                x = 1.5 * PIXEL_XY_SIZE;
-                y = -1.5 * PIXEL_XY_SIZE;
+                x = 1.5 * PIXEL_XY_SPACING;
+                y = -1.5 * PIXEL_XY_SPACING;
             }
             12 -> {
-                x = 0.5 * PIXEL_XY_SIZE;
-                y = -1.5 * PIXEL_XY_SIZE;
+                x = 0.5 * PIXEL_XY_SPACING;
+                y = -1.5 * PIXEL_XY_SPACING;
             }
             14 -> {
-                x = 1.5 * PIXEL_XY_SIZE;
-                y = -0.5 * PIXEL_XY_SIZE;
+                x = 1.5 * PIXEL_XY_SPACING;
+                y = -0.5 * PIXEL_XY_SPACING;
             }
             13 -> {
-                x = 0.5 * PIXEL_XY_SIZE;
-                y = -0.5 * PIXEL_XY_SIZE;
+                x = 0.5 * PIXEL_XY_SPACING;
+                y = -0.5 * PIXEL_XY_SPACING;
             }
             else -> throw Error();
         }
