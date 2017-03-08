@@ -43,7 +43,7 @@ compileKotlin {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compile "no.tornado:tornadofx:1.6.1"
+    compile "no.tornado:tornadofx:1.7.0"
     compile "org.apache.commons:commons-math3:3.6.1"
 
     // https://mvnrepository.com/artifact/org.glassfish/javax.json

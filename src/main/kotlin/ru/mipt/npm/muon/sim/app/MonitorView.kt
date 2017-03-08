@@ -1,16 +1,19 @@
 package ru.mipt.npm.muon.sim.app
 
 import javafx.collections.FXCollections
+import javafx.collections.ListChangeListener
 import javafx.embed.swing.SwingFXUtils
 import javafx.event.EventHandler
 import javafx.geometry.Orientation
 import javafx.scene.*
+import javafx.scene.control.Alert
 import javafx.scene.control.TableView
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.ScrollEvent
 import javafx.scene.paint.Color
+import javafx.scene.paint.Material
 import javafx.scene.paint.PhongMaterial
 import javafx.scene.shape.Box
 import javafx.scene.text.Text
@@ -53,6 +56,8 @@ class MonitorView : View() {
 
     private val canvas = buildCanvas();
 
+    private val highlightedPixels = FXCollections.observableArrayList<Pixel>();
+
     override val root = vbox {
         title = "Muon monitor demonstration"
 
@@ -66,9 +71,29 @@ class MonitorView : View() {
                 id = "clearButton"
                 onAction = EventHandler { clearEvents() }
             }
-//            text(labelTextProperty) {
-//                textProperty().onChange {  }
-//            }
+            separator { }
+            label("Custom pixel highlight: ")
+            textfield {
+                id = "highlighter"
+                prefWidth = 400.0
+                onKeyPressed = EventHandler { event ->
+                    if (event.getCode() == KeyCode.ENTER) {
+                        if (text.isEmpty()) {
+                            highlightedPixels.clear()
+                        } else {
+                            try {
+                                var truncate = text.trim()
+                                if (truncate.startsWith("[")) {
+                                    truncate = truncate.substring(1, truncate.length - 1)
+                                }
+                                highlightedPixels.setAll(truncate.split(",").map { findPixelByName(it.trim()) })
+                            } catch (ex: Exception) {
+                                alert(Alert.AlertType.ERROR, "Wrong syntax for pixel names", ex.message ?: "")
+                            }
+                        }
+                    }
+                }
+            }
         }
         splitpane {
             orientation = Orientation.HORIZONTAL
@@ -81,11 +106,11 @@ class MonitorView : View() {
                 onSelectionChange {
                     events.forEach {
                         it.event.hits.forEach {
-                            pixelMap[it]?.material = redMaterial
+                            setPixelMaterial(it, redMaterial)
                         }
                     }
                     it?.event?.hits?.forEach {
-                        pixelMap[it]?.material = blueMaterial
+                        setPixelMaterial(it, blueMaterial);
                     }
                 }
             }
@@ -107,6 +132,23 @@ class MonitorView : View() {
 
         this.monitor.isCache = true
         this.monitor.cacheHint = CacheHint.ROTATE
+
+        highlightedPixels.addListener(ListChangeListener { change ->
+            while(change.next()) {
+                //reset previously highlighted pixels
+                change.removed.forEach { resetPixelColor(it) }
+                change.list.forEach { setPixelColor(it, Color.GREEN) }
+            }
+        })
+    }
+
+    private fun findPixelByName(name: String): Pixel {
+        val fullName = if (name.startsWith("SC")) {
+            name;
+        } else {
+            "SC" + name;
+        }
+        return pixels[fullName]!!;
     }
 
     private fun buildCanvas(): SubScene {
@@ -255,7 +297,8 @@ class MonitorView : View() {
                 KeyCode.DIGIT1 -> pixelMap.filterKeys { it.getLayerNumber() == 1 }.values.forEach { toggleTransparency(it) }
                 KeyCode.DIGIT2 -> pixelMap.filterKeys { it.getLayerNumber() == 2 }.values.forEach { toggleTransparency(it) }
                 KeyCode.DIGIT3 -> pixelMap.filterKeys { it.getLayerNumber() == 3 }.values.forEach { toggleTransparency(it) }
-                else ->{}//do nothing
+                else -> {
+                }//do nothing
             }
         }
     }
@@ -292,14 +335,23 @@ class MonitorView : View() {
     }
 
     private fun setPixelActive(pixel: Pixel, active: Boolean) {
-        val pixelBox = pixelMap[pixel]
-        if (pixelBox != null) {
-            if (active) {
-                pixelBox.material = redMaterial
-            } else {
-                pixelBox.material = whiteMaterial
-            }
+        if (active) {
+            setPixelMaterial(pixel, redMaterial)
+        } else {
+            setPixelMaterial(pixel, whiteMaterial)
         }
+    }
+
+    private fun setPixelMaterial(pixel: Pixel, material: Material) {
+        pixelMap[pixel]?.material = material;
+    }
+
+    private fun setPixelColor(pixel: Pixel, color: Color) {
+        setPixelMaterial(pixel, PhongMaterial(color))
+    }
+
+    private fun resetPixelColor(pixel: Pixel) {
+        setPixelMaterial(pixel, whiteMaterial)
     }
 
     private fun snapshot() {

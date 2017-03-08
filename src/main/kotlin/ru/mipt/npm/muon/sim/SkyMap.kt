@@ -4,7 +4,7 @@ import org.apache.commons.math3.distribution.EnumeratedRealDistribution
 import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import java.util.zip.ZipFile
 
 /**
@@ -67,27 +67,27 @@ class EmpiricalDistributionTrackGenerator(val rows: List<SkyMapEntry>, val maxX:
 fun generateMap(eventNumber: Int = 1000000, trackGenerator: TrackGenerator = UniformTrackGenerator(), experimentData: Map<String, Int>? = null): List<SkyMapEntry> {
     fun convert(d: Double): Double = Math.floor(d * 180.0 / Math.PI) + 0.5;
 
-    val map = ConcurrentHashMap<Pair<Double, Double>, AtomicInteger>();
+    val map = ConcurrentHashMap<Pair<Double, Double>, AtomicReference<Double>>();
 
     val simResult = simulateN(eventNumber, trackGenerator, true);
 
-    val totalFactor = AtomicInteger(0)
-    val sum = AtomicInteger(0)
-    val sim = AtomicInteger(0)
+    var totalFactor = 0.0
+    var sum = 0.0
+    var sim = 0.0
 
     simResult.forEach {
         //weight for each event. If data map exists weight is the number of data hits. Otherwise, weight equals 1
-        val factor = experimentData?.getOrElse(it.key) { 0 } ?: 1
+        val factor = ((experimentData?.getOrElse(it.key) { 0 } ?: 1).toDouble()) /it.value.count
         if (factor > 0) {
-            totalFactor.addAndGet(factor)
+            totalFactor += factor
             it.value.events.forEach {
-                sim.incrementAndGet();
+                sim++
                 val coords = Pair(convert(it.track.getTheta()), convert(it.track.getPhi()));
                 if (!map.containsKey(coords)) {
-                    map.put(coords, AtomicInteger(0))
+                    map.put(coords, AtomicReference<Double>(0.0))
                 }
-                map[coords]?.addAndGet(factor);
-                sum.addAndGet(factor)
+                map[coords]?.updateAndGet { it+factor };
+                sum += factor
             }
         }
     }
@@ -97,7 +97,7 @@ fun generateMap(eventNumber: Int = 1000000, trackGenerator: TrackGenerator = Uni
     println("The total weighting factor: $totalFactor")
     println("The integral: $sum")
 
-    return map.map { entry -> SkyMapEntry(90 - entry.key.first, entry.key.second, entry.value.toDouble()) }
+    return map.map { entry -> SkyMapEntry(90 - entry.key.first, entry.key.second, entry.value.get()) }
 }
 
 fun generateMap(parameters: Map<String, String>) {
