@@ -64,8 +64,11 @@ class EmpiricalDistributionTrackGenerator(val rows: List<SkyMapEntry>, val maxX:
     }
 }
 
-fun generateMap(eventNumber: Int = 1000000, trackGenerator: TrackGenerator = UniformTrackGenerator(), experimentData: Map<String, Int>? = null): List<SkyMapEntry> {
-    fun convert(d: Double): Double = Math.floor(d * 180.0 / Math.PI) + 0.5;
+fun generateMap(eventNumber: Int = 1000000,
+                trackGenerator: TrackGenerator = UniformTrackGenerator(),
+                experimentData: Map<String, Int>? = null,
+                step: Double = 1.0): List<SkyMapEntry> {
+    fun convert(d: Double): Double = Math.floor(d * 180.0 / Math.PI / step) * step + step / 2.0;
 
     val map = ConcurrentHashMap<Pair<Double, Double>, AtomicReference<Double>>();
 
@@ -77,7 +80,7 @@ fun generateMap(eventNumber: Int = 1000000, trackGenerator: TrackGenerator = Uni
 
     simResult.forEach {
         //weight for each event. If data map exists weight is the number of data hits. Otherwise, weight equals 1
-        val factor = ((experimentData?.getOrElse(it.key) { 0 } ?: 1).toDouble()) /it.value.count
+        val factor = ((experimentData?.getOrElse(it.key) { 0 } ?: 1).toDouble()) / it.value.count
         if (factor > 0) {
             totalFactor += factor
             it.value.events.forEach {
@@ -86,7 +89,7 @@ fun generateMap(eventNumber: Int = 1000000, trackGenerator: TrackGenerator = Uni
                 if (!map.containsKey(coords)) {
                     map.put(coords, AtomicReference<Double>(0.0))
                 }
-                map[coords]?.updateAndGet { it+factor };
+                map[coords]?.updateAndGet { it + factor };
                 sum += factor
             }
         }
@@ -101,6 +104,8 @@ fun generateMap(eventNumber: Int = 1000000, trackGenerator: TrackGenerator = Uni
 }
 
 fun generateMap(parameters: Map<String, String>) {
+    val step = 5.0
+
     val n = parameters.getOrElse("num") { "100000" }.toInt();
 
     val outStream = outputStream(parameters);
@@ -120,15 +125,15 @@ fun generateMap(parameters: Map<String, String>) {
         null
     }
 
-    var map = generateMap(eventNumber = n, experimentData = data)
+    var map = generateMap(eventNumber = n, experimentData = data, step = step)
 
     outStream.println("# Differential flux using $n simulated muons")
 
     if (parameters.containsKey("secondIteration")) {
         println("Starting second iteration")
         outStream.println("# Empirical initial distribution")
-        val generator = EmpiricalDistributionTrackGenerator(map)
-        map = generateMap(eventNumber = n, trackGenerator = generator, experimentData = data);
+        val generator = EmpiricalDistributionTrackGenerator(map, angleStep = step)
+        map = generateMap(eventNumber = n, trackGenerator = generator, experimentData = data, step = step);
     } else {
         outStream.println("# Uniform initial distribution")
     }

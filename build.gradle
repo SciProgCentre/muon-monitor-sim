@@ -53,6 +53,7 @@ dependencies {
     compile group: 'commons-cli', name: 'commons-cli', version: '1.3.1'
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
 }
 
 task cliHelp(dependsOn: 'classes', type: JavaExec) {
@@ -141,15 +142,11 @@ task generateMapWithData(dependsOn: 'classes', type: JavaExec) {
 
 task generateMapWithSecondIteration(dependsOn: 'classes', type: JavaExec) {
     main = mainClassName
-    args = ["map", "-n=1000000", "-f", "mapWithData_second.dat", "-d=data_filtered.zip","--secondIteration"]
+    args = ["map", "-n=2000000", "-f", "mapWithData_second.dat", "-d=data_filtered.zip","--secondIteration"]
     group = "muonsim"
     classpath = sourceSets.main.runtimeClasspath
 }
 
 task wrapper(type: Wrapper) {
     gradleVersion = '3.4'
-}
-
-sourceSets {
-    main.java.srcDirs += 'src/main/kotlin'
 }
