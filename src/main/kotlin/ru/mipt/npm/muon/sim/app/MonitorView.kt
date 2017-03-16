@@ -1,5 +1,6 @@
 package ru.mipt.npm.muon.sim.app
 
+import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
 import javafx.collections.ListChangeListener
 import javafx.embed.swing.SwingFXUtils
@@ -7,7 +8,9 @@ import javafx.event.EventHandler
 import javafx.geometry.Orientation
 import javafx.scene.*
 import javafx.scene.control.Alert
+import javafx.scene.control.Button
 import javafx.scene.control.TableView
+import javafx.scene.control.ToggleButton
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseEvent
@@ -18,6 +21,7 @@ import javafx.scene.paint.PhongMaterial
 import javafx.scene.shape.Box
 import javafx.scene.text.Text
 import javafx.stage.FileChooser
+import javafx.stage.Stage
 import ru.mipt.npm.muon.sim.*
 import tornadofx.*
 import java.io.IOException
@@ -58,6 +62,8 @@ class MonitorView : View() {
 
     private val highlightedPixels = FXCollections.observableArrayList<Pixel>();
 
+    private val listButton = ToggleButton("List")
+
     override val root = vbox {
         title = "Muon monitor demonstration"
 
@@ -71,6 +77,7 @@ class MonitorView : View() {
                 id = "clearButton"
                 onAction = EventHandler { clearEvents() }
             }
+            add(listButton)
             separator { }
             label("Custom pixel highlight: ")
             textfield {
@@ -95,28 +102,28 @@ class MonitorView : View() {
                 }
             }
         }
-        splitpane {
-            orientation = Orientation.HORIZONTAL
-            add(canvas)
-            tableview(events) {
-                column("name", EventDisplay::name)
-                column("theta", EventDisplay::theta)
-                column("phi", EventDisplay::phi)
-                columnResizePolicy = TableView.CONSTRAINED_RESIZE_POLICY
-                onSelectionChange {
-                    events.forEach {
-                        it.event.hits.forEach {
-                            setPixelMaterial(it, redMaterial)
-                        }
-                    }
-                    it?.event?.hits?.forEach {
-                        setPixelMaterial(it, blueMaterial);
-                    }
+        add(canvas)
+    }
+
+    val eventViewStage = Stage();
+
+    private val eventListView = eventViewStage.tableview(events) {
+        column("name", EventDisplay::name)
+        column("theta", EventDisplay::theta)
+        column("phi", EventDisplay::phi)
+        columnResizePolicy = TableView.CONSTRAINED_RESIZE_POLICY
+        onSelectionChange {
+            events.forEach {
+                it.event.hits.forEach {
+                    setPixelMaterial(it, redMaterial)
                 }
             }
+            it?.event?.hits?.forEach {
+                setPixelMaterial(it, blueMaterial);
+            }
         }
-
     }
+
 
     init {
         //initializing camera
@@ -130,11 +137,26 @@ class MonitorView : View() {
         handleKeyboard()
         handleMouse(canvas)
 
+        eventViewStage.title = "List of events"
+        eventViewStage.scene = Scene(eventListView)
+        eventViewStage.initOwner(this.currentWindow);
+
+        canvas.widthProperty().bind(root.widthProperty())
+
+        listButton.selectedProperty().addListener({ _: ObservableValue<out Boolean>, _: Boolean, newValue: Boolean ->
+            if (newValue && newValue != eventViewStage.isShowing()) {
+                eventViewStage.show()
+            } else {
+                eventViewStage.hide()
+            }
+        })
+        eventViewStage.onCloseRequest = EventHandler { listButton.selectedProperty().set(false)}
+
         this.monitor.isCache = true
         this.monitor.cacheHint = CacheHint.ROTATE
 
         highlightedPixels.addListener(ListChangeListener { change ->
-            while(change.next()) {
+            while (change.next()) {
                 //reset previously highlighted pixels
                 change.removed.forEach { resetPixelColor(it) }
                 change.list.forEach { setPixelColor(it, Color.GREEN) }
