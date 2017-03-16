@@ -6,12 +6,13 @@ import org.apache.commons.math3.random.RandomGenerator
 import java.util.*
 
 /**
+ * General geometry definitions
  * Created by darksnake on 09-May-16.
  */
 
 val GEOMETRY_TOLERANCE = 0.01;
 val PIXEL_XY_SIZE = 122.0;
-val PIXEL_XY_SPACING = 125.0;
+val PIXEL_XY_SPACING = 123.2;
 val PIXEL_Z_SIZE = 30.0;
 val CENTRAL_LAYER_Z = 0.0;
 val UPPER_LAYER_Z = 166.0;
@@ -56,11 +57,11 @@ fun buildPixels(): Map<String, Pixel> {
     // read geometry file
     ClassLoader.getSystemClassLoader().getResourceAsStream("map-RMM110.sc16").bufferedReader().forEachLine { line ->
         if (line.startsWith(" ")) {
-            var split = line.trim().split("\\s+".toPattern());
-            var detectorName = split[1];
-            var x = split[4].toDouble() - 500;
-            var y = split[5].toDouble() - 500;
-            var z = split[6].toDouble() - 180;
+            val split = line.trim().split("\\s+".toPattern());
+            val detectorName = split[1];
+            val x = split[4].toDouble() - 500;
+            val y = split[5].toDouble() - 500;
+            val z = split[6].toDouble() - 180;
             map.putAll(buildDetector(detectorName, Vector3D(x, y, z)))
         }
     }
@@ -98,7 +99,7 @@ fun readEffs(): Map<String, Double> {
  * Build map for single detector
  */
 fun buildDetector(detectorName: String, detectorPos: Vector3D): Map<String, Pixel> {
-    var map = HashMap<String, Pixel>();
+    val map = HashMap<String, Pixel>();
     for (index in 0..15) {
         var x: Double;
         var y: Double;
