@@ -414,8 +414,8 @@ class MonitorView : View() {
         previewJob = GlobalScope.launch(Dispatchers.JavaFx) {
             launch {
                 while (true) {
-                    delay(50)
-                    cameraRotation.rz.angle += ROTATION_SPEED / 2
+                    delay(10)
+                    cameraRotation.rz.angle += ROTATION_SPEED / 10
                 }
             }
             launch {
