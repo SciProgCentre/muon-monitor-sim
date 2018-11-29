@@ -1,16 +1,13 @@
 package ru.mipt.npm.muon.sim.app
 
-import javafx.beans.value.ObservableValue
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.FXCollections
 import javafx.collections.ListChangeListener
 import javafx.embed.swing.SwingFXUtils
 import javafx.event.EventHandler
-import javafx.geometry.Orientation
 import javafx.scene.*
 import javafx.scene.control.Alert
-import javafx.scene.control.Button
 import javafx.scene.control.TableView
-import javafx.scene.control.ToggleButton
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseEvent
@@ -22,6 +19,8 @@ import javafx.scene.shape.Box
 import javafx.scene.text.Text
 import javafx.stage.FileChooser
 import javafx.stage.Stage
+import kotlinx.coroutines.*
+import kotlinx.coroutines.javafx.JavaFx
 import ru.mipt.npm.muon.sim.*
 import tornadofx.*
 import java.io.IOException
@@ -43,9 +42,8 @@ class MonitorView : View() {
     private val monitor = Xform()
     private val world = Xform()
     private val camera = PerspectiveCamera(true)
-    private val cameraXform = Xform()
-    private val cameraXform2 = Xform()
-    private val cameraXform3 = Xform()
+    private val cameraRotation = Xform()
+    private val cameraShift = Xform()
 
     private val events = FXCollections.observableArrayList<EventDisplay>()
 
@@ -58,11 +56,30 @@ class MonitorView : View() {
 
     private val pixelMap = HashMap<Pixel, Box>()
 
-    private val canvas = buildCanvas();
+    private val canvas = buildCanvas()
 
-    private val highlightedPixels = FXCollections.observableArrayList<Pixel>();
+    private val highlightedPixels = FXCollections.observableArrayList<Pixel>()
 
-    private val listButton = ToggleButton("List")
+    private val listShowingProperty = SimpleBooleanProperty().apply {
+        onChange { newValue: Boolean ->
+            if (newValue && newValue != eventListStage.isShowing) {
+                eventListStage.show()
+            } else {
+                eventListStage.hide()
+            }
+        }
+    }
+
+    private val eventListStage: Stage by lazy {
+        val stage = EventListView().openWindow(owner = currentWindow) ?: kotlin.error("Can't create event list window")
+        stage.showingProperty().onChange { newValue: Boolean ->
+            if (!newValue) {
+                listShowingProperty.set(false)
+            }
+        }
+        stage
+    }
+
 
     override val root = vbox {
         title = "Muon monitor demonstration"
@@ -77,14 +94,23 @@ class MonitorView : View() {
                 id = "clearButton"
                 onAction = EventHandler { clearEvents() }
             }
-            add(listButton)
+            togglebutton("List") {
+                isSelected = false
+                listShowingProperty.bindBidirectional(this.selectedProperty())
+            }
+            togglebutton("Preview") {
+                isSelected = false
+                this.selectedProperty().onChange {
+                    if (it) startPreview() else stopPreview()
+                }
+            }
             separator { }
             label("Custom pixel highlight: ")
             textfield {
                 id = "highlighter"
                 prefWidth = 400.0
                 onKeyPressed = EventHandler { event ->
-                    if (event.getCode() == KeyCode.ENTER) {
+                    if (event.code == KeyCode.ENTER) {
                         if (text.isEmpty()) {
                             highlightedPixels.clear()
                         } else {
@@ -105,25 +131,6 @@ class MonitorView : View() {
         add(canvas)
     }
 
-    val eventViewStage = Stage();
-
-    private val eventListView = eventViewStage.tableview(events) {
-        column("name", EventDisplay::name)
-        column("theta", EventDisplay::theta)
-        column("phi", EventDisplay::phi)
-        columnResizePolicy = TableView.CONSTRAINED_RESIZE_POLICY
-        onSelectionChange {
-            events.forEach {
-                it.event.hits.forEach {
-                    setPixelMaterial(it, redMaterial)
-                }
-            }
-            it?.event?.hits?.forEach {
-                setPixelMaterial(it, blueMaterial);
-            }
-        }
-    }
-
 
     init {
         //initializing camera
@@ -137,20 +144,7 @@ class MonitorView : View() {
         handleKeyboard()
         handleMouse(canvas)
 
-        eventViewStage.title = "List of events"
-        eventViewStage.scene = Scene(eventListView)
-        eventViewStage.initOwner(this.currentWindow);
-
         canvas.widthProperty().bind(root.widthProperty())
-
-        listButton.selectedProperty().addListener({ _: ObservableValue<out Boolean>, _: Boolean, newValue: Boolean ->
-            if (newValue && newValue != eventViewStage.isShowing()) {
-                eventViewStage.show()
-            } else {
-                eventViewStage.hide()
-            }
-        })
-        eventViewStage.onCloseRequest = EventHandler { listButton.selectedProperty().set(false)}
 
         this.monitor.isCache = true
         this.monitor.cacheHint = CacheHint.ROTATE
@@ -166,37 +160,38 @@ class MonitorView : View() {
 
     private fun findPixelByName(name: String): Pixel {
         val fullName = if (name.startsWith("SC")) {
-            name;
+            name
         } else {
-            "SC" + name;
+            "SC$name"
         }
-        return pixels[fullName]!!;
+        return pixels[fullName]!!
     }
 
     private fun buildCanvas(): SubScene {
         log.info("build canvas")
-        val monitorScene = Group(world, cameraXform)
+        val monitorScene = Group(world, cameraRotation)
         monitorScene.depthTest = DepthTest.ENABLE
         val canvas = SubScene(monitorScene, 1024.0, 768.0, true, SceneAntialiasing.BALANCED)
         canvas.fill = Color.GREY
         canvas.camera = camera
         canvas.id = "canvas"
-        return canvas;
+        return canvas
     }
 
     private fun buildCamera() {
         log.info("buildCamera")
-        cameraXform.children.add(cameraXform2)
-        cameraXform2.children.add(cameraXform3)
-        cameraXform3.children.add(camera)
-        cameraXform3.setRotateZ(180.0)
+        cameraRotation.children.add(cameraShift)
+        val cameraFlip = Xform()
+        cameraShift.children.add(cameraFlip)
+        cameraFlip.children.add(camera)
+        cameraFlip.setRotateZ(180.0)
 
         camera.nearClip = CAMERA_NEAR_CLIP
         camera.farClip = CAMERA_FAR_CLIP
         camera.translateZ = CAMERA_INITIAL_DISTANCE
-        cameraXform.ry.angle = CAMERA_INITIAL_Y_ANGLE
-        cameraXform.rx.angle = CAMERA_INITIAL_X_ANGLE
-        cameraXform.rz.angle = CAMERA_INITIAL_Z_ANGLE
+        cameraRotation.ry.angle = CAMERA_INITIAL_Y_ANGLE
+        cameraRotation.rx.angle = CAMERA_INITIAL_X_ANGLE
+        cameraRotation.rz.angle = CAMERA_INITIAL_Z_ANGLE
     }
 
     private fun buildAxes() {
@@ -277,24 +272,22 @@ class MonitorView : View() {
             mouseDeltaX = mousePosX - mouseOldX
             mouseDeltaY = mousePosY - mouseOldY
 
-            var modifier = 1.0
+            val modifier = when {
+                me.isControlDown -> CONTROL_MULTIPLIER
+                me.isShiftDown -> SHIFT_MULTIPLIER
+                else -> 1.0
+            }
 
-            if (me.isControlDown) {
-                modifier = CONTROL_MULTIPLIER
-            }
-            if (me.isShiftDown) {
-                modifier = SHIFT_MULTIPLIER
-            }
             if (me.isPrimaryButtonDown) {
-                cameraXform.rz.angle = cameraXform.rz.angle + mouseDeltaX * MOUSE_SPEED * modifier * ROTATION_SPEED
-                cameraXform.rx.angle = cameraXform.rx.angle + mouseDeltaY * MOUSE_SPEED * modifier * ROTATION_SPEED
+                cameraRotation.rz.angle = cameraRotation.rz.angle + mouseDeltaX * MOUSE_SPEED * modifier * ROTATION_SPEED
+                cameraRotation.rx.angle = cameraRotation.rx.angle + mouseDeltaY * MOUSE_SPEED * modifier * ROTATION_SPEED
                 //                } else if (me.isSecondaryButtonDown()) {
                 //                    double z = camera.getTranslateZ();
                 //                    double newZ = z + mouseDeltaX * MOUSE_SPEED * modifier*100;
                 //                    camera.setTranslateZ(newZ);
             } else if (me.isSecondaryButtonDown) {
-                cameraXform2.t.x = cameraXform2.t.x + mouseDeltaX * MOUSE_SPEED * modifier * TRACK_SPEED
-                cameraXform2.t.y = cameraXform2.t.y + mouseDeltaY * MOUSE_SPEED * modifier * TRACK_SPEED
+                cameraShift.t.x = cameraShift.t.x + mouseDeltaX * MOUSE_SPEED * modifier * TRACK_SPEED
+                cameraShift.t.y = cameraShift.t.y + mouseDeltaY * MOUSE_SPEED * modifier * TRACK_SPEED
             }
         }
         scene.onScroll = EventHandler<ScrollEvent> { event ->
@@ -306,21 +299,23 @@ class MonitorView : View() {
 
     private fun handleKeyboard() {
         root.onKeyPressed = EventHandler<KeyEvent> { event ->
-            when (event.code) {
-                KeyCode.Z -> {
-                    cameraXform2.t.x = 0.0
-                    cameraXform2.t.y = 0.0
-                    camera.translateZ = CAMERA_INITIAL_DISTANCE
-                    cameraXform.ry.angle = CAMERA_INITIAL_Y_ANGLE
-                    cameraXform.rx.angle = CAMERA_INITIAL_X_ANGLE
+            if (event.isControlDown) {
+                when (event.code) {
+                    KeyCode.Z -> {
+                        cameraShift.t.x = 0.0
+                        cameraShift.t.y = 0.0
+                        camera.translateZ = CAMERA_INITIAL_DISTANCE
+                        cameraRotation.ry.angle = CAMERA_INITIAL_Y_ANGLE
+                        cameraRotation.rx.angle = CAMERA_INITIAL_X_ANGLE
+                    }
+                    KeyCode.X -> axisGroup.isVisible = !axisGroup.isVisible
+                    KeyCode.S -> snapshot()
+                    KeyCode.DIGIT1 -> pixelMap.filterKeys { it.getLayerNumber() == 1 }.values.forEach { toggleTransparency(it) }
+                    KeyCode.DIGIT2 -> pixelMap.filterKeys { it.getLayerNumber() == 2 }.values.forEach { toggleTransparency(it) }
+                    KeyCode.DIGIT3 -> pixelMap.filterKeys { it.getLayerNumber() == 3 }.values.forEach { toggleTransparency(it) }
+                    else -> {
+                    }//do nothing
                 }
-                KeyCode.X -> axisGroup.isVisible = !axisGroup.isVisible
-                KeyCode.S -> snapshot()
-                KeyCode.DIGIT1 -> pixelMap.filterKeys { it.getLayerNumber() == 1 }.values.forEach { toggleTransparency(it) }
-                KeyCode.DIGIT2 -> pixelMap.filterKeys { it.getLayerNumber() == 2 }.values.forEach { toggleTransparency(it) }
-                KeyCode.DIGIT3 -> pixelMap.filterKeys { it.getLayerNumber() == 3 }.values.forEach { toggleTransparency(it) }
-                else -> {
-                }//do nothing
             }
         }
     }
@@ -338,7 +333,7 @@ class MonitorView : View() {
             pixelBox.translateY = p.center.y
             pixelBox.translateZ = -p.center.z
 
-            pixelMap.put(p, pixelBox)
+            pixelMap[p] = pixelBox
 
             val cap = Text(p.name)
             cap.style = "-fx-font-size:20;-fx-font-weight: bold"
@@ -365,7 +360,7 @@ class MonitorView : View() {
     }
 
     private fun setPixelMaterial(pixel: Pixel, material: Material) {
-        pixelMap[pixel]?.material = material;
+        pixelMap[pixel]?.material = material
     }
 
     private fun setPixelColor(pixel: Pixel, color: Color) {
@@ -390,9 +385,9 @@ class MonitorView : View() {
                     e.printStackTrace()
                 }
             } else {
-                log.info("Saving snapshot canceled");
+                log.info("Saving snapshot canceled")
             }
-            null;
+            null
         }, SnapshotParameters(), null)
     }
 
@@ -412,40 +407,86 @@ class MonitorView : View() {
 //        }
     }
 
+
+    private var previewJob: Job? = null
+
+    private fun startPreview() {
+        previewJob = GlobalScope.launch(Dispatchers.JavaFx) {
+            launch {
+                while (true) {
+                    delay(50)
+                    cameraRotation.rz.angle += ROTATION_SPEED / 2
+                }
+            }
+            launch {
+                while(true){
+                    delay(1000)
+                    displayEvent(simulateOne(UniformTrackGenerator()))
+                }
+            }
+        }
+    }
+
+    private fun stopPreview() {
+        previewJob?.cancel()
+        previewJob = null
+    }
+
+    inner class EventListView : View("List of events") {
+
+        override val root = borderpane {
+            center = tableview(events) {
+                readonlyColumn("name", MonitorView.EventDisplay::name)
+                readonlyColumn("theta", MonitorView.EventDisplay::theta)
+                readonlyColumn("phi", MonitorView.EventDisplay::phi)
+                columnResizePolicy = TableView.CONSTRAINED_RESIZE_POLICY
+                onSelectionChange {
+                    events.forEach { event ->
+                        event.event.hits.forEach { pixel ->
+                            setPixelMaterial(pixel, MonitorView.redMaterial)
+                        }
+                    }
+                    it?.event?.hits?.forEach { pixel ->
+                        setPixelMaterial(pixel, MonitorView.blueMaterial)
+                    }
+                }
+            }
+
+        }
+    }
+
     companion object {
-        private val CAMERA_INITIAL_DISTANCE = -4500.0
-        private val CAMERA_INITIAL_X_ANGLE = -50.0
-        private val CAMERA_INITIAL_Y_ANGLE = 0.0
-        private val CAMERA_INITIAL_Z_ANGLE = -210.0
-        private val CAMERA_NEAR_CLIP = 0.1
-        private val CAMERA_FAR_CLIP = 10000.0
-        private val AXIS_LENGTH = 2000.0
-        private val CONTROL_MULTIPLIER = 0.1
-        private val SHIFT_MULTIPLIER = 10.0
-        private val MOUSE_SPEED = 0.1
-        private val ROTATION_SPEED = 2.0
-        private val TRACK_SPEED = 6.0
-        private val RESIZE_SPEED = 50.0
-        private val LINE_WIDTH = 3.0
+        private const val CAMERA_INITIAL_DISTANCE = -4500.0
+        private const val CAMERA_INITIAL_X_ANGLE = -50.0
+        private const val CAMERA_INITIAL_Y_ANGLE = 0.0
+        private const val CAMERA_INITIAL_Z_ANGLE = -210.0
+        private const val CAMERA_NEAR_CLIP = 0.1
+        private const val CAMERA_FAR_CLIP = 10000.0
+        private const val AXIS_LENGTH = 2000.0
+        private const val CONTROL_MULTIPLIER = 0.1
+        private const val SHIFT_MULTIPLIER = 10.0
+        private const val MOUSE_SPEED = 0.1
+        private const val ROTATION_SPEED = 2.0
+        private const val TRACK_SPEED = 6.0
+        private const val RESIZE_SPEED = 50.0
+        private const val LINE_WIDTH = 3.0
 
-        private val redMaterial = PhongMaterial()
+        private val redMaterial = PhongMaterial().apply {
+            diffuseColor = Color.DARKRED
+            specularColor = Color.RED
+        }
 
-        private val whiteMaterial = PhongMaterial()
+        private val whiteMaterial = PhongMaterial().apply {
+            diffuseColor = Color.WHITE
+            specularColor = Color.LIGHTBLUE
+        }
 
-        private val greyMaterial = PhongMaterial()
+        private val greyMaterial = PhongMaterial().apply {
+            diffuseColor = Color.DARKGREY
+            specularColor = Color.GREY
+        }
 
         private val blueMaterial = PhongMaterial(Color.BLUE)
-
-        init {
-            redMaterial.diffuseColor = Color.DARKRED
-            redMaterial.specularColor = Color.RED
-
-            whiteMaterial.diffuseColor = Color.WHITE
-            whiteMaterial.specularColor = Color.LIGHTBLUE
-
-            greyMaterial.diffuseColor = Color.DARKGREY
-            greyMaterial.specularColor = Color.GREY
-        }
 
     }
 
