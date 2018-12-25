@@ -421,7 +421,8 @@ class MonitorView : View() {
             launch {
                 while(true){
                     delay(1000)
-                    displayEvent(simulateOne(UniformTrackGenerator()))
+                    val result = async(Dispatchers.Default){simulateOne(UniformTrackGenerator())}
+                    displayEvent(result.await())
                 }
             }
         }
